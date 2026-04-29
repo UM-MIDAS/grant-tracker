@@ -45,8 +45,8 @@ AGENCY_CODES = [
     "DOT", "USDOT", "FHWA", "FRA", "FTA", "FAA", "NHTSA", "MARAD",
     # Department of Defense
     "DOD", "USDOD", "DARPA", "ARMY", "NAVY", "AF", "OSD",
-    # National Endowment for the Humanities
-    "NEH"
+    # National Humanities Endowment Fund
+    "NHE"
 ]
 
 # Post-search eligibility filter
@@ -177,7 +177,10 @@ def append_new_rows(existing: pd.DataFrame, incoming: pd.DataFrame) -> tuple[pd.
     if existing.empty:
         return incoming, len(incoming)
 
-    known_ids = set(existing["_opportunity_id"].dropna())
+    if "_opportunity_id" in existing.columns:
+        known_ids = set(existing["_opportunity_id"].dropna())
+    else:
+        known_ids = set(existing["Opportunity ID"].dropna())
     new_rows  = incoming[~incoming["_opportunity_id"].isin(known_ids)]
     updated   = pd.concat([existing, new_rows], ignore_index=True)
     return updated, len(new_rows)
