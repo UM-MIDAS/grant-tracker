@@ -39,5 +39,6 @@ jobs:
           git stash || true
           git pull --rebase
           git stash pop || true
+          git add data/industry_grants.csv || true
           git diff --cached --quiet || git commit -m "chore: update industry grants CSV [$(date +'%Y-%m-%d')]"
           git push || true
