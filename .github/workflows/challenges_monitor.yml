@@ -67,6 +67,7 @@ jobs:
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
+          git pull --rebase
           git add data/nih_challenges.csv || true
           git diff --cached --quiet || git commit -m "chore: update NIH challenges CSV [$(date +'%Y-%m-%d')]"
           git push || true
