@@ -35,7 +35,9 @@ jobs:
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add data/opportunities.csv
-          # Only commit if there are actual changes
+          git add data/opportunities.csv || true
+          git stash || true
+          git pull --rebase
+          git stash pop || true
           git diff --cached --quiet || git commit -m "chore: update opportunities CSV [$(date +'%Y-%m-%d')]"
-          git push
+          git push || true
