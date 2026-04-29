@@ -45,8 +45,6 @@ AGENCY_CODES = [
     "DOT", "USDOT", "FHWA", "FRA", "FTA", "FAA", "NHTSA", "MARAD",
     # Department of Defense
     "DOD", "USDOD", "DARPA", "ARMY", "NAVY", "AF", "OSD",
-    # National Humanities Endowment Fund
-    "NHE"
 ]
 
 # Post-search eligibility filter
@@ -137,30 +135,32 @@ def extract_fields(opp: dict) -> dict:
     fi_raw = summary.get("funding_instruments") or opp.get("funding_instruments") or []
     fi_str = ", ".join(fi_raw) if isinstance(fi_raw, list) else str(fi_raw)
 
-    opp_id = opp.get("opportunity_id", "")
+    opp_id     = opp.get("opportunity_id", "")
+    opp_number = opp.get("opportunity_number", "")
 
     addl_elig = (summary.get("applicant_eligibility") or {}).get("additional_info_on_eligibility", "")
 
     return {
-        "Opportunity ID":                       opp.get("opportunity_number", ""),
-        "Title":                                opp.get("opportunity_title", ""),
-        "Post Date":                            summary.get("post_date") or opp.get("post_date", ""),
-        "Est. # of Awards":                     summary.get("expected_number_of_awards"),
-        "Est. Total Funding":                   summary.get("estimated_total_program_funding"),
-        "Award Ceiling":                        summary.get("award_ceiling"),
-        "Assistance Listings":                  al_str,
-        "Funding Instrument Type":              fi_str,
-        "Contact":                              summary.get("agency_email_address", ""),
-        "Deadline":                             summary.get("close_date") or opp.get("close_date", ""),
-        "Est. NOFO Date":                       (forecasts or {}).get("post_date", ""),
-        "Est. Application Deadline":            (forecasts or {}).get("close_date", ""),
-        "Last Updated":                         opp.get("updated_at", ""),
-        "URL":                                  f"https://simpler.grants.gov/opportunity/{opp_id}" if opp_id else "",
-        "Description":                          strip_html(summary.get("summary_description", "")),
-        "Agency":                               opp.get("agency_code", ""),
-        "Status":                               "Forecast" if is_forecast else "Posted",
+        "Opportunity ID":                        opp_number,
+        "Title":                                 opp.get("opportunity_title", ""),
+        "Post Date":                             summary.get("post_date") or opp.get("post_date", ""),
+        "Est. # of Awards":                      summary.get("expected_number_of_awards"),
+        "Est. Total Funding":                    summary.get("estimated_total_program_funding"),
+        "Award Ceiling":                         summary.get("award_ceiling"),
+        "Assistance Listings":                   al_str,
+        "Funding Instrument Type":               fi_str,
+        "Contact":                               summary.get("agency_email_address", ""),
+        "Deadline":                              summary.get("close_date") or opp.get("close_date", ""),
+        "Est. NOFO Date":                        (forecasts or {}).get("post_date", ""),
+        "Est. Application Deadline":             (forecasts or {}).get("close_date", ""),
+        "Last Updated":                          opp.get("updated_at", ""),
+        "URL":                                   f"https://simpler.grants.gov/opportunity/{opp_id}" if opp_id else "",
+        "Description":                           strip_html(summary.get("summary_description", "")),
+        "Agency":                                opp.get("agency_code", ""),
+        "Status":                                "Forecast" if is_forecast else "Posted",
         "Additional Information on Eligibility": addl_elig,
-        "_opportunity_id":                      opp_id,  # internal dedup key, not shown to users
+        # Internal dedup key — uses opportunity_number to match saved "Opportunity ID" column
+        "_opportunity_id":                       opp_number,
     }
 
 
@@ -173,14 +173,12 @@ def load_existing_csv() -> pd.DataFrame:
 
 
 def append_new_rows(existing: pd.DataFrame, incoming: pd.DataFrame) -> tuple[pd.DataFrame, int]:
-    """Return (updated_df, count_of_new_rows)."""
+    """Return (updated_df, count_of_new_rows). Deduplicates on Opportunity ID."""
     if existing.empty:
         return incoming, len(incoming)
 
-    if "_opportunity_id" in existing.columns:
-        known_ids = set(existing["_opportunity_id"].dropna())
-    else:
-        known_ids = set(existing["Opportunity ID"].dropna())
+    # Always deduplicate against the saved "Opportunity ID" column
+    known_ids = set(existing["Opportunity ID"].dropna())
     new_rows  = incoming[~incoming["_opportunity_id"].isin(known_ids)]
     updated   = pd.concat([existing, new_rows], ignore_index=True)
     return updated, len(new_rows)
@@ -188,8 +186,11 @@ def append_new_rows(existing: pd.DataFrame, incoming: pd.DataFrame) -> tuple[pd.
 
 def save_csv(df: pd.DataFrame):
     CSV_PATH.parent.mkdir(parents=True, exist_ok=True)
-    # Drop internal dedup column before saving
-    df.drop(columns=["_opportunity_id"], errors="ignore").to_csv(CSV_PATH, index=False)
+    # Deduplicate on Opportunity ID (keeps last, cleans up any prior duplicates)
+    # then drop the internal dedup column before saving
+    df.drop_duplicates(subset=["Opportunity ID"], keep="last") \
+      .drop(columns=["_opportunity_id"], errors="ignore") \
+      .to_csv(CSV_PATH, index=False)
 
 
 # ── SLACK NOTIFICATION ─────────────────────────────────────────────────────────
@@ -224,9 +225,9 @@ def main():
     print(f"Starting Grants.gov monitor — {datetime.now().strftime('%Y-%m-%d %H:%M UTC')}")
     print(f"Fetching opportunities from {len(AGENCY_CODES)} agency codes...")
 
-    raw       = fetch_all_opportunities()
-    filtered  = [o for o in raw if is_eligible(o)]
-    dropped   = len(raw) - len(filtered)
+    raw      = fetch_all_opportunities()
+    filtered = [o for o in raw if is_eligible(o)]
+    dropped  = len(raw) - len(filtered)
 
     print(f"\nFetched: {len(raw)} | After eligibility filter: {len(filtered)} | Dropped: {dropped}")
 
@@ -244,16 +245,15 @@ def main():
         incoming_df["Last Updated"], errors="coerce", utc=True
     ).dt.strftime("%Y-%m-%d")
 
-    existing_df            = load_existing_csv()
-    updated_df, new_count  = append_new_rows(existing_df, incoming_df)
+    existing_df           = load_existing_csv()
+    updated_df, new_count = append_new_rows(existing_df, incoming_df)
 
     save_csv(updated_df)
     print(f"CSV updated — {new_count} new rows added ({len(updated_df)} total).")
 
-    # Agency breakdown of new rows only
     if new_count > 0:
-        new_rows   = updated_df.tail(new_count)
-        by_agency  = new_rows["Agency"].value_counts().to_dict()
+        new_rows  = updated_df.tail(new_count)
+        by_agency = new_rows["Agency"].value_counts().to_dict()
     else:
         by_agency = {}
 
