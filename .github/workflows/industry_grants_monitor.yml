@@ -1,0 +1,41 @@
+name: Industry Grants Monitor
+
+on:
+  schedule:
+    # Runs every weekday at 9:00 AM Eastern (13:00 UTC)
+    # Offset by 15 minutes from the challenges monitor to avoid overlap
+    - cron: "0 13 * * 1-5"
+  workflow_dispatch: # allows manual trigger from GitHub Actions tab
+
+jobs:
+  monitor:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+
+    steps:
+      - name: Check out repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install requests pandas beautifulsoup4
+
+      - name: Run industry grants monitor
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+        run: python search_industry_grants.py
+
+      - name: Commit updated CSV
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git pull --rebase
+          git add data/industry_grants.csv || true
+          git diff --cached --quiet || git commit -m "chore: update industry grants CSV [$(date +'%Y-%m-%d')]"
+          git push || true
