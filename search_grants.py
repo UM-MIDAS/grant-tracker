@@ -45,6 +45,8 @@ AGENCY_CODES = [
     "DOT", "USDOT", "FHWA", "FRA", "FTA", "FAA", "NHTSA", "MARAD",
     # Department of Defense
     "DOD", "USDOD", "DARPA", "ARMY", "NAVY", "AF", "OSD",
+    # National Humanities Endowment Fund
+    "NHE"
 ]
 
 # Post-search eligibility filter
