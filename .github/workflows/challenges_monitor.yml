@@ -2,10 +2,8 @@ name: Challenges Daily Monitor
 
 on:
   schedule:
-    # Runs every weekday at 8:45 AM Eastern (12:45 UTC)
-    # Offset by 45 minutes from Grants.gov monitor to avoid overlap
     - cron: "45 12 * * 1-5"
-  workflow_dispatch: # allows manual trigger from GitHub Actions tab
+  workflow_dispatch:
 
 jobs:
   usagov-challenges:
@@ -36,13 +34,16 @@ jobs:
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add data/usagov_challenges.csv || true
+          git stash || true
+          git pull --rebase
+          git stash pop || true
           git diff --cached --quiet || git commit -m "chore: update USA.gov challenges CSV [$(date +'%Y-%m-%d')]"
           git push || true
 
   nih-challenges:
     name: NIH Challenges
     runs-on: ubuntu-latest
-    needs: usagov-challenges  # run sequentially to avoid git push conflicts
+    needs: usagov-challenges
     permissions:
       contents: write
 
@@ -67,7 +68,9 @@ jobs:
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git pull --rebase
           git add data/nih_challenges.csv || true
+          git stash || true
+          git pull --rebase
+          git stash pop || true
           git diff --cached --quiet || git commit -m "chore: update NIH challenges CSV [$(date +'%Y-%m-%d')]"
           git push || true
