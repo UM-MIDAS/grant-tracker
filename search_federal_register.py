@@ -196,7 +196,10 @@ def load_existing_csv() -> pd.DataFrame:
 def append_new_rows(existing: pd.DataFrame, incoming: pd.DataFrame) -> tuple[pd.DataFrame, int]:
     if existing.empty:
         return incoming, len(incoming)
-    known_ids = set(existing["_document_number"].dropna())
+    if "_document_number" in existing.columns:
+        known_ids = set(existing["_document_number"].dropna())
+    else:
+        known_ids = set(existing["Document Number"].dropna())
     new_rows  = incoming[~incoming["_document_number"].isin(known_ids)]
     updated   = pd.concat([existing, new_rows], ignore_index=True)
     return updated, len(new_rows)
