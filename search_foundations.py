@@ -27,13 +27,23 @@ CSV_URL  = f"{REPO_URL}/blob/main/data/foundations.csv"
 
 HEADERS = {"User-Agent": "Mozilla/5.0 (compatible; FundingMonitor/1.0)"}
 
-SIMONS_URL = "https://www.simonsfoundation.org/funding-opportunities/"
-SLOAN_URL  = "https://sloan.org/grants/open-calls"
+SIMONS_URL  = "https://www.simonsfoundation.org/funding-opportunities/"
+SLOAN_URL   = "https://sloan.org/grants/open-calls"
 SCHMIDT_URL = "https://www.schmidtsciences.org/opportunities/"
 
 # ── SIMONS FOUNDATION ──────────────────────────────────────────────────────────
 
 def scrape_simons() -> list[dict]:
+    """
+    Page structure:
+      <h4><a href="/grant/pivot-fellowship/">Pivot Fellowship</a></h4>
+      <p>Program Area: ...</p>
+      <p>Career Stage - ...</p>
+      <p>Status - Open Application deadline: 12 p.m. ET May 14, 2026</p>
+
+    Status and deadline may be inside a sibling <div>, so we use the
+    parent container's full text rather than direct sibling traversal.
+    """
     records = []
     today   = datetime.now(timezone.utc).strftime("%Y-%m-%d")
 
@@ -42,8 +52,6 @@ def scrape_simons() -> list[dict]:
         resp.raise_for_status()
         soup = BeautifulSoup(resp.text, "html.parser")
 
-        # Each opportunity is an <h4> or <h3> anchor. Status, deadline, and
-        # program area are in sibling or child elements of the parent container.
         for item in soup.find_all(["h3", "h4"]):
             link_tag = item.find("a", href=True)
             if not link_tag:
@@ -55,12 +63,9 @@ def scrape_simons() -> list[dict]:
             href = link_tag["href"]
             url  = href if href.startswith("http") else f"https://www.simonsfoundation.org{href}"
 
-            # Use the parent container's full text — status may be in a child div
-            # rather than a direct sibling of the <h4>
+            # Walk up to a parent container that holds the full opportunity block
             parent = item.find_parent()
             parent_text = parent.get_text(" ", strip=True) if parent else ""
-
-            # If parent text is too short it's probably a nav element — go up one more
             if len(parent_text) < 30:
                 grandparent = parent.find_parent() if parent else None
                 if grandparent:
@@ -70,22 +75,24 @@ def scrape_simons() -> list[dict]:
             if "Status - Open" not in parent_text:
                 continue
 
-            # Extract deadline — handle "12 p.m. ET May 14, 2026" format
+            # Deadline — handle "12 p.m. ET May 14, 2026" format
             deadline = ""
             m = re.search(
-                r"(?:Application [Dd]eadline|deadline)[:\s]*(?:\d{1,2}\s*[ap]\.m\.\s*ET\s*)?([A-Z][a-z]+ \d{1,2},?\s*\d{4})",
+                r"(?:Application [Dd]eadline|[Dd]eadline)[:\s]*"
+                r"(?:\d{1,2}\s*[ap]\.m\.\s*ET\s*)?"
+                r"([A-Z][a-z]+ \d{1,2},?\s*\d{4})",
                 parent_text
             )
             if m:
                 deadline = m.group(1).strip()
 
-            # Extract program area
+            # Program area
             program = ""
             m2 = re.search(r"Program Area[:\s-]*([\w\s&|,]+?)(?:Career Stage|Status)", parent_text)
             if m2:
                 program = m2.group(1).strip(" |·-")
 
-            # Extract career stage
+            # Career stage
             career = ""
             m3 = re.search(r"Career Stage[:\s-]*([\w\s/,]+?)(?:Status|$)", parent_text)
             if m3:
@@ -111,6 +118,18 @@ def scrape_simons() -> list[dict]:
 # ── ALFRED P. SLOAN FOUNDATION ─────────────────────────────────────────────────
 
 def scrape_sloan() -> list[dict]:
+    """
+    Page structure (open-calls page lists ONLY open calls, no filtering needed):
+
+      ## Economic Research on the Returns to R&D Investment
+      **Call for:** Letters of Inquiry
+      **Deadline:** April 30, 2026
+      **Summary**: Grants available for...
+      **Link:** https://sloan.org/programs/...
+
+    Each open call is an <h2> followed by bold-labelled paragraphs.
+    We anchor on <h2> tags that are followed by a "Deadline:" line.
+    """
     records = []
     today   = datetime.now(timezone.utc).strftime("%Y-%m-%d")
 
@@ -119,44 +138,47 @@ def scrape_sloan() -> list[dict]:
         resp.raise_for_status()
         soup = BeautifulSoup(resp.text, "html.parser")
 
-        # Each open call has a title link; description is in the parent container.
-        # The page lists ONLY open calls so no status filtering needed.
-        # We anchor on links containing /programs/ or /grants/ to avoid nav items.
-        seen = set()
-        for link_tag in soup.find_all("a", href=True):
-            href = link_tag["href"]
-            if not any(seg in href for seg in ["/programs/", "/grants/", "apply.sloan.org"]):
+        # Find the main content area — skip nav h2s by looking for ones
+        # followed by bold "Call for:" or "Deadline:" text nearby
+        for h2 in soup.find_all("h2"):
+            title = h2.get_text(strip=True)
+            # Skip nav/section headings
+            if title in ("Open Calls", "Grants", "") or len(title) < 5:
                 continue
-            title = link_tag.get_text(strip=True)
-            if not title or len(title) < 8 or title in seen:
-                continue
-            seen.add(title)
 
-            url = href if href.startswith("http") else f"https://sloan.org{href}"
-
-            # Get description from parent container
-            parent = link_tag.find_parent()
-            desc = ""
-            for _ in range(4):  # walk up a few levels to find meaningful text
-                if parent and len(parent.get_text(strip=True)) > len(title) + 20:
-                    full = parent.get_text(" ", strip=True)
-                    desc = full.replace(title, "").strip()[:300]
+            # Collect the next ~5 siblings to find the structured fields
+            fields = {}
+            for sib in h2.find_next_siblings():
+                sib_text = sib.get_text(" ", strip=True)
+                # Stop if we hit another h2
+                if sib.name == "h2":
                     break
-                parent = parent.find_parent() if parent else None
+                # Parse bold-labelled fields
+                for label in ["Call for", "Deadline", "Summary", "Link"]:
+                    if f"{label}:" in sib_text:
+                        val = re.sub(rf".*{label}:\s*", "", sib_text, count=1).strip()
+                        fields[label] = val
 
-            # Extract deadline
-            deadline = ""
-            m = re.search(r"(?:[Dd]eadline|[Dd]ue)[:\s]*([A-Z][a-z]+ \d{1,2},?\s*\d{4})", desc)
-            if m:
-                deadline = m.group(1).strip()
+                if len(fields) >= 2:
+                    # Check if there's a URL link in this sibling
+                    link_tag = sib.find("a", href=True)
+                    if link_tag and "Link" not in fields:
+                        href = link_tag["href"]
+                        fields["Link"] = href if href.startswith("http") else f"https://sloan.org{href}"
+
+            # Must have at least a Deadline or Summary to be a real open call
+            if not fields.get("Deadline") and not fields.get("Summary"):
+                continue
+
+            url = fields.get("Link", SLOAN_URL)
 
             records.append({
                 "Title":        title,
                 "Funder":       "Sloan Foundation",
-                "Program Area": "",
+                "Program Area": fields.get("Call for", ""),
                 "Career Stage": "",
-                "Description":  desc,
-                "Deadline":     deadline,
+                "Description":  fields.get("Summary", "")[:300],
+                "Deadline":     fields.get("Deadline", ""),
                 "URL":          url,
                 "Scraped Date": today,
             })
@@ -170,6 +192,17 @@ def scrape_sloan() -> list[dict]:
 # ── SCHMIDT SCIENCES ───────────────────────────────────────────────────────────
 
 def scrape_schmidt() -> list[dict]:
+    """
+    Page structure:
+      <li>
+        <h3>VIEW-2 Call for EOIs</h3>
+        Virtual Institute for Earth's Water (VIEW)
+        <a href="https://airtable.com/...">Apply</a>
+      </li>
+
+    Each opportunity is an <li> with an <h3> title, a plain-text subtitle,
+    and an Apply link. The Apply link text may be inside an <a> tag.
+    """
     records = []
     today   = datetime.now(timezone.utc).strftime("%Y-%m-%d")
 
@@ -178,28 +211,28 @@ def scrape_schmidt() -> list[dict]:
         resp.raise_for_status()
         soup = BeautifulSoup(resp.text, "html.parser")
 
-        # Each opportunity <li> contains an <a> with text "Apply" — unique marker
         for li in soup.select("li"):
-            apply_tag = li.find("a", string=lambda t: t and t.strip().lower() == "apply")
-            if not apply_tag:
+            h3 = li.find("h3")
+            if not h3:
+                continue
+            title = h3.get_text(strip=True)
+            if not title or len(title) < 5:
                 continue
 
-            title_tag = li.find(["h3", "h2"])
-            if not title_tag:
-                continue
-            title = title_tag.get_text(strip=True)
-            if not title:
-                continue
-
-            # Program area — text node directly after the title
+            # Program area is the text node directly after the h3
             program = ""
-            for sib in title_tag.find_next_siblings():
-                t = sib.get_text(strip=True)
+            for content in h3.next_siblings:
+                if hasattr(content, "get_text"):
+                    t = content.get_text(strip=True)
+                else:
+                    t = str(content).strip()
                 if t and t.lower() != "apply" and len(t) < 120:
                     program = t
                     break
 
-            apply_url = apply_tag.get("href", SCHMIDT_URL)
+            # Apply link
+            apply_tag = li.find("a", href=True)
+            apply_url = apply_tag["href"] if apply_tag else SCHMIDT_URL
 
             records.append({
                 "Title":        title,
