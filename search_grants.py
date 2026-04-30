@@ -33,6 +33,8 @@ REPO_URL = "https://github.com/" + os.environ.get("GITHUB_REPOSITORY", "your-org
 CSV_URL  = f"{REPO_URL}/blob/main/data/opportunities.csv"
 
 AGENCY_CODES = [
+    # National Aeronautics and Space Administration
+    "NASA",
     # National Science Foundation
     "NSF",
     # National Institutes of Health
@@ -45,8 +47,6 @@ AGENCY_CODES = [
     "DOT", "USDOT", "FHWA", "FRA", "FTA", "FAA", "NHTSA", "MARAD",
     # Department of Defense
     "DOD", "USDOD", "DARPA", "ARMY", "NAVY", "AF", "OSD",
-    # National Humanities Endowment Fund
-    "NHE"
 ]
 
 # Post-search eligibility filter
