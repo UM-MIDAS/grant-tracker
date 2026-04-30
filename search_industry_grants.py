@@ -1,7 +1,9 @@
 """
 Amazon Research Awards & NVIDIA Academic Grants Monitor
-Scrapes open call-for-proposal pages for both programs and replaces the CSV
+Scrapes open call-for-proposal pages for Amazon and NVIDIA and replaces the CSV
 with currently open opportunities. Posts Slack alerts on changes.
+
+Note: Schmidt Sciences has moved to search_foundations.py
 
 No API key required.
 
@@ -322,7 +324,7 @@ def post_slack(total: int, added: list, removed: list, by_funder: dict):
         )
     else:
         lines = [
-            f":briefcase: *Industry Grants Monitor (Schmidt Sciences, Amazon & NVIDIA) — {today}*\n"
+            f":briefcase: *Industry Grants Monitor (Amazon & NVIDIA) — {today}*\n"
             f"{total} open opportunit{'y' if total == 1 else 'ies'} currently tracked.\n"
         ]
         funder_lines = "\n".join(f"  • {f}: {c}" for f, c in sorted(by_funder.items()))
