@@ -50,7 +50,13 @@ def scrape_simons() -> list[dict]:
     try:
         resp = requests.get(SIMONS_URL, headers=HEADERS, timeout=30)
         resp.raise_for_status()
+        print(f"  Simons HTTP {resp.status_code}, content length {len(resp.text)}")
+        print(f"  'Status - Open' found: {'Status - Open' in resp.text}")
+        h4_count = resp.text.count('<h4')
+        print(f"  h4 tags in raw HTML: {h4_count}")
         soup = BeautifulSoup(resp.text, "html.parser")
+        all_h4 = soup.find_all(["h3", "h4"])
+        print(f"  h3/h4 tags parsed: {len(all_h4)}")
 
         for item in soup.find_all(["h3", "h4"]):
             link_tag = item.find("a", href=True)
@@ -136,7 +142,15 @@ def scrape_sloan() -> list[dict]:
     try:
         resp = requests.get(SLOAN_URL, headers=HEADERS, timeout=30)
         resp.raise_for_status()
+        print(f"  Sloan HTTP {resp.status_code}, content length {len(resp.text)}")
+        print(f"  'Deadline' found: {'Deadline' in resp.text}")
+        h2_count = resp.text.count('<h2')
+        print(f"  h2 tags in raw HTML: {h2_count}")
         soup = BeautifulSoup(resp.text, "html.parser")
+        all_h2 = soup.find_all("h2")
+        print(f"  h2 tags parsed: {len(all_h2)}")
+        for h in all_h2[:5]:
+            print(f"    h2: {repr(h.get_text(strip=True)[:60])}")
 
         NAV_HEADINGS = {"Open Calls", "Grants", "Programs", "About", "Impact",
                         "Sloan Research Fellowships", "Apply", "For Grantees",
