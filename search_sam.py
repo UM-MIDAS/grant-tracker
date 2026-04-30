@@ -32,7 +32,7 @@ CSV_URL  = f"{REPO_URL}/blob/main/data/sam_opportunities.csv"
 
 # SAM.gov uses organizationName for filtering — these are partial matches.
 # Both ARPA-H and DARPA will match their full official names.
-TARGET_ORGS = ["ARPA-H", "DARPA"]
+TARGET_ORGS = ["ARPA-H", "ARPA-E", "DARPA"]
 
 # Procurement type codes — all types included per requirements.
 # Leave empty to return all types.
