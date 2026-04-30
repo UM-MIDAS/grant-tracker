@@ -45,8 +45,6 @@ AMAZON_CFP_URL  = "https://www.amazon.science/research-awards/call-for-proposals
 NVIDIA_GRANT_URL    = "https://www.nvidia.com/en-us/industries/higher-education-research/academic-grant-program/"
 NVIDIA_FELLOW_URL   = "https://research.nvidia.com/graduate-fellowships"
 
-# Schmidt Sciences
-SCHMIDT_URL = "https://www.schmidtsciences.org/opportunities/"
 
 # ── AMAZON SCRAPE ──────────────────────────────────────────────────────────────
 
@@ -146,56 +144,6 @@ def scrape_amazon() -> list[dict]:
     return records
 
 
-# ── SCHMIDT SCIENCES SCRAPE ────────────────────────────────────────────────────
-
-def scrape_schmidt() -> list[dict]:
-    """
-    Scrapes the Schmidt Sciences opportunities page.
-    Each open call is a <li> with a title, program area, and apply link.
-    """
-    records = []
-    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
-
-    try:
-        resp = requests.get(SCHMIDT_URL, headers=HEADERS, timeout=30)
-        resp.raise_for_status()
-        soup = BeautifulSoup(resp.text, "html.parser")
-
-        for li in soup.select("li"):
-            title_tag = li.find(["h3", "h2", "strong"])
-            if not title_tag:
-                continue
-            title = title_tag.get_text(strip=True)
-            if not title or len(title) < 5:
-                continue
-
-            # Program area — the <p> or secondary text under the title
-            program = ""
-            for sib in title_tag.find_next_siblings():
-                t = sib.get_text(strip=True)
-                if t and len(t) < 100:
-                    program = t
-                    break
-
-            # Apply link
-            apply_tag = li.find("a", href=True)
-            apply_url = apply_tag["href"] if apply_tag else SCHMIDT_URL
-
-            records.append({
-                "Title":        title,
-                "Program":      program or "Schmidt Sciences",
-                "Funder":       "Schmidt Sciences",
-                "Description":  program or "See apply link for full details.",
-                "Deadline":     "",  # Schmidt rarely lists deadlines on this page
-                "URL":          SCHMIDT_URL,
-                "Apply URL":    apply_url,
-                "Scraped Date": today,
-            })
-
-    except Exception as e:
-        print(f"  WARNING: Schmidt Sciences scrape failed: {e}")
-
-    return records
 
 
 # ── NVIDIA SCRAPE ──────────────────────────────────────────────────────────────
@@ -353,10 +301,6 @@ def main():
 
     all_records = []
 
-    print("\nScraping Schmidt Sciences...")
-    schmidt = scrape_schmidt()
-    all_records.extend(schmidt)
-    print(f"  → {len(schmidt)} Schmidt Sciences records")
 
     print("\nScraping Amazon Research Awards...")
     amazon = scrape_amazon()
