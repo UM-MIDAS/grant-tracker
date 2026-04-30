@@ -121,14 +121,14 @@ def scrape_sloan() -> list[dict]:
     """
     Page structure (open-calls page lists ONLY open calls, no filtering needed):
 
-      ## Economic Research on the Returns to R&D Investment
-      **Call for:** Letters of Inquiry
-      **Deadline:** April 30, 2026
-      **Summary**: Grants available for...
-      **Link:** https://sloan.org/programs/...
+      <h2>Economic Research on the Returns to R&D Investment</h2>
+      <p><strong>Call for:</strong>Letters of Inquiry</p>
+      <p><strong>Deadline:</strong>April 30, 2026</p>
+      <p><strong>Summary</strong>: Grants available for...</p>
+      <p><strong>Link:</strong><a href="https://sloan.org/...">...</a></p>
 
-    Each open call is an <h2> followed by bold-labelled paragraphs.
-    We anchor on <h2> tags that are followed by a "Deadline:" line.
+    Each open call is an <h2> with <strong>-labelled <p> siblings.
+    Nav headings like "Open Calls" and "Grants" are skipped.
     """
     records = []
     today   = datetime.now(timezone.utc).strftime("%Y-%m-%d")
@@ -138,39 +138,42 @@ def scrape_sloan() -> list[dict]:
         resp.raise_for_status()
         soup = BeautifulSoup(resp.text, "html.parser")
 
-        # Find the main content area — skip nav h2s by looking for ones
-        # followed by bold "Call for:" or "Deadline:" text nearby
+        NAV_HEADINGS = {"Open Calls", "Grants", "Programs", "About", "Impact",
+                        "Sloan Research Fellowships", "Apply", "For Grantees",
+                        "Contact", "Grants Database"}
+
         for h2 in soup.find_all("h2"):
             title = h2.get_text(strip=True)
-            # Skip nav/section headings
-            if title in ("Open Calls", "Grants", "") or len(title) < 5:
+            if not title or len(title) < 5 or title in NAV_HEADINGS:
                 continue
 
-            # Collect the next ~5 siblings to find the structured fields
+            # Parse <strong>-labelled fields from following siblings
             fields = {}
             for sib in h2.find_next_siblings():
-                sib_text = sib.get_text(" ", strip=True)
-                # Stop if we hit another h2
                 if sib.name == "h2":
                     break
-                # Parse bold-labelled fields
-                for label in ["Call for", "Deadline", "Summary", "Link"]:
-                    if f"{label}:" in sib_text:
-                        val = re.sub(rf".*{label}:\s*", "", sib_text, count=1).strip()
-                        fields[label] = val
+                for strong in sib.find_all("strong"):
+                    label = strong.get_text(strip=True).rstrip(":")
+                    # Value is the text/element immediately after the <strong>
+                    val_node = strong.next_sibling
+                    if val_node:
+                        if hasattr(val_node, "get_text"):
+                            val = val_node.get_text(strip=True).lstrip(": ")
+                        else:
+                            val = str(val_node).strip().lstrip(": ")
+                        if val:
+                            fields[label] = val
+                # Grab the href from any link sibling
+                link_tag = sib.find("a", href=True)
+                if link_tag:
+                    href = link_tag["href"]
+                    fields["Link_url"] = href if href.startswith("http") else f"https://sloan.org{href}"
 
-                if len(fields) >= 2:
-                    # Check if there's a URL link in this sibling
-                    link_tag = sib.find("a", href=True)
-                    if link_tag and "Link" not in fields:
-                        href = link_tag["href"]
-                        fields["Link"] = href if href.startswith("http") else f"https://sloan.org{href}"
-
-            # Must have at least a Deadline or Summary to be a real open call
+            # Must have Deadline or Summary to be a real open call entry
             if not fields.get("Deadline") and not fields.get("Summary"):
                 continue
 
-            url = fields.get("Link", SLOAN_URL)
+            url = fields.get("Link_url", fields.get("Link", SLOAN_URL))
 
             records.append({
                 "Title":        title,
