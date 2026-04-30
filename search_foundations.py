@@ -42,10 +42,9 @@ def scrape_simons() -> list[dict]:
         resp.raise_for_status()
         soup = BeautifulSoup(resp.text, "html.parser")
 
-        # Each opportunity is an <h4> or <h3> anchor followed by description
-        # and a Status line. We only keep items where Status = Open.
+        # Each opportunity is an <h4> or <h3> anchor. Status, deadline, and
+        # program area are in sibling or child elements of the parent container.
         for item in soup.find_all(["h3", "h4"]):
-            # Get the link and title
             link_tag = item.find("a", href=True)
             if not link_tag:
                 continue
@@ -56,20 +55,27 @@ def scrape_simons() -> list[dict]:
             href = link_tag["href"]
             url  = href if href.startswith("http") else f"https://www.simonsfoundation.org{href}"
 
-            # Look for status in surrounding text
-            parent_text = ""
-            for sib in item.find_next_siblings():
-                parent_text += " " + sib.get_text(" ", strip=True)
-                if len(parent_text) > 400:
-                    break
+            # Use the parent container's full text — status may be in a child div
+            # rather than a direct sibling of the <h4>
+            parent = item.find_parent()
+            parent_text = parent.get_text(" ", strip=True) if parent else ""
+
+            # If parent text is too short it's probably a nav element — go up one more
+            if len(parent_text) < 30:
+                grandparent = parent.find_parent() if parent else None
+                if grandparent:
+                    parent_text = grandparent.get_text(" ", strip=True)
 
             # Only keep open opportunities
-            if "Status - Open" not in parent_text and "Status -  Open" not in parent_text:
+            if "Status - Open" not in parent_text:
                 continue
 
-            # Extract deadline
+            # Extract deadline — handle "12 p.m. ET May 14, 2026" format
             deadline = ""
-            m = re.search(r"(?:Application [Dd]eadline|deadline)[:\s]*([A-Z][a-z]+ \d{1,2},?\s*\d{4})", parent_text)
+            m = re.search(
+                r"(?:Application [Dd]eadline|deadline)[:\s]*(?:\d{1,2}\s*[ap]\.m\.\s*ET\s*)?([A-Z][a-z]+ \d{1,2},?\s*\d{4})",
+                parent_text
+            )
             if m:
                 deadline = m.group(1).strip()
 
@@ -113,25 +119,30 @@ def scrape_sloan() -> list[dict]:
         resp.raise_for_status()
         soup = BeautifulSoup(resp.text, "html.parser")
 
-        # Each open call is a block with a title link and a Summary paragraph
-        for item in soup.find_all(["h2", "h3", "h4"]):
-            link_tag = item.find("a", href=True)
-            if not link_tag:
-                continue
-            title = item.get_text(strip=True)
-            if not title or len(title) < 5:
-                continue
-
+        # Each open call has a title link; description is in the parent container.
+        # The page lists ONLY open calls so no status filtering needed.
+        # We anchor on links containing /programs/ or /grants/ to avoid nav items.
+        seen = set()
+        for link_tag in soup.find_all("a", href=True):
             href = link_tag["href"]
-            url  = href if href.startswith("http") else f"https://sloan.org{href}"
+            if not any(seg in href for seg in ["/programs/", "/grants/", "apply.sloan.org"]):
+                continue
+            title = link_tag.get_text(strip=True)
+            if not title or len(title) < 8 or title in seen:
+                continue
+            seen.add(title)
 
-            # Get the summary from next sibling paragraph
+            url = href if href.startswith("http") else f"https://sloan.org{href}"
+
+            # Get description from parent container
+            parent = link_tag.find_parent()
             desc = ""
-            for sib in item.find_next_siblings():
-                t = sib.get_text(strip=True)
-                if t and len(t) > 20:
-                    desc = t[:300]
+            for _ in range(4):  # walk up a few levels to find meaningful text
+                if parent and len(parent.get_text(strip=True)) > len(title) + 20:
+                    full = parent.get_text(" ", strip=True)
+                    desc = full.replace(title, "").strip()[:300]
                     break
+                parent = parent.find_parent() if parent else None
 
             # Extract deadline
             deadline = ""
