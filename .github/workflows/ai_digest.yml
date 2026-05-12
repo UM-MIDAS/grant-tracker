@@ -34,10 +34,7 @@ jobs:
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add docs/ai-digest.html || true
-          git stash || true
           git pull --rebase
-          git stash pop || true
-          git add docs/ai-digest.html || true
+          git add docs/ai-digest.html
           git diff --cached --quiet || git commit -m "chore: update AI digest [$(date +'%Y-%m-%d')]"
-          git push || true
+          git push
