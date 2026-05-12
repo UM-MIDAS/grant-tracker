@@ -23,7 +23,7 @@ jobs:
           python-version: "3.11"
 
       - name: Install dependencies
-        run: pip install pandas
+        run: pip install pandas requests
 
       - name: Generate AI digest
         env:
