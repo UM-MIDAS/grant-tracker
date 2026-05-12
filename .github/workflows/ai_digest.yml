@@ -2,20 +2,23 @@ name: AI & Data Science Digest
 
 on:
   schedule:
-    # Runs every Monday at 9:00 AM Eastern (13:00 UTC)
     - cron: "0 13 * * 1"
-  workflow_dispatch: # allows manual trigger from GitHub Actions tab
+  workflow_dispatch:
 
 jobs:
   generate:
     runs-on: ubuntu-latest
-
     permissions:
       contents: write
 
     steps:
       - name: Check out repo
         uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Pull latest changes
+        run: git pull origin main
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -34,8 +37,6 @@ jobs:
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git config pull.rebase true
           git add docs/ai-digest.html
-          git commit -m "chore: update AI digest [$(date +'%Y-%m-%d')]" || echo "Nothing to commit"
-          git pull --rebase --autostash
+          git diff --cached --quiet || git commit -m "chore: update AI digest [$(date +'%Y-%m-%d')]"
           git push
