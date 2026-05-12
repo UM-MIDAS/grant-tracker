@@ -35,7 +35,7 @@ jobs:
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add docs/ai-digest.html
-          git stash
+          git stash --include-untracked
           git pull --rebase
           git stash pop
           git add docs/ai-digest.html
