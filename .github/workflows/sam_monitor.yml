@@ -36,9 +36,10 @@ jobs:
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add data/sam_opportunities.csv || true
-          git stash || true
-          git pull --rebase
-          git stash pop || true
+          git add data/sam_opportunities.csv
+          git stash
+          git pull --rebase origin main
+          git stash pop
+          git add data/sam_opportunities.csv
           git diff --cached --quiet || git commit -m "chore: update SAM opportunities CSV [$(date +'%Y-%m-%d')]"
-          git push || true
+          git push origin main
