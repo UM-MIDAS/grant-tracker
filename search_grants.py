@@ -12,6 +12,8 @@ import os
 import re
 import sys
 import requests
+import html
+import argparse
 import pandas as pd
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -130,7 +132,28 @@ def is_eligible(opp: dict) -> bool:
 def strip_html(text: str) -> str:
     if not text:
         return ""
-    return re.sub(r"<[^>]+>", "", text).strip()
+
+    # Decode HTML entities
+    previous = None
+    while text != previous:
+        previous = text
+        text = html.unescape(text)
+
+    # Preserve separation around block-level elements
+    text = re.sub(
+        r"</?(?:p|div|br|li|ul|ol|h[1-6])[^>]*>",
+        " ",
+        text,
+        flags=re.IGNORECASE
+    )
+
+    # Remove remaining tags
+    text = re.sub(r"<[^>]*>", "", text)
+
+    # Collapse excessive whitespace
+    text = re.sub(r"\s+", " ", text)
+
+    return text.strip()
 
 
 def norm_date(date: str) -> str:
@@ -252,7 +275,7 @@ def post_slack(new_count: int, total_count: int, by_agency: dict):
 
 # ── MAIN ───────────────────────────────────────────────────────────────────────
 
-def main():
+def main(args):
     days_lookback_date = norm_date(pd.Timestamp.now(tz="UTC") - pd.Timedelta(days=DAYS_LOOKBACK))
     print(f"Starting Grants.gov monitor — {datetime.now().strftime('%Y-%m-%d %H:%M UTC')}")
     print(f"Fetching opportunities from {len(AGENCY_CODES)} agency codes...")
@@ -325,10 +348,17 @@ def main():
     else:
         by_agency = {}
 
-    post_slack(new_count, len(updated_df), by_agency)
-    print(by_agency)
+    if not args.no_slack:
+        post_slack(new_count, len(updated_df), by_agency)
+    
     print("Done.")
 
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser()
+
+    parser.add_argument("--no-slack", action="store_true")
+
+    args = parser.parse_args()
+    
+    main(args)
