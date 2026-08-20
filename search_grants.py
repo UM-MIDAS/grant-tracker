@@ -23,6 +23,7 @@ SLACK_WEBHOOK = os.environ["SLACK_WEBHOOK"]
 
 BASE_URL        = "https://api.simpler.grants.gov"
 SEARCH_ENDPOINT = f"{BASE_URL}/v1/opportunities/search"
+OPPORTUNITES_ENDPOINT = f"{BASE_URL}/v1/opportunities"
 CSV_PATH        = Path("data/opportunities.csv")
 
 DAYS_LOOKBACK = 14   # API lookback window; deduplication handles overlap
@@ -61,13 +62,22 @@ ELIGIBLE_APPLICANT_TYPES = [
 
 # ── API FETCH ──────────────────────────────────────────────────────────────────
 
-def build_payload(page_offset: int) -> dict:
+def build_payload(page_offset: int, type: str) -> dict:
     cutoff = (datetime.now(timezone.utc) - timedelta(days=DAYS_LOOKBACK)).strftime("%Y-%m-%d")
+    
+    if type == 'new':
+        f_type = 'post_date'
+    elif type == 'all':
+        f_type = ''
+    else:
+        print("ERROR: Invalid search type.")
+        sys.exit(1)
+        
     return {
         "filters": {
             "opportunity_status": {"one_of": ["posted", "forecasted"]},
             "agency":             {"one_of": AGENCY_CODES},
-            "updated_at":         {"start_date": cutoff},
+            f_type:               {"start_date": cutoff},
         },
         "pagination": {
             "page_offset": page_offset,
@@ -75,14 +85,14 @@ def build_payload(page_offset: int) -> dict:
             "sort_order":  [{"order_by": "post_date", "sort_direction": "descending"}],
         },
     }
+    
 
-
-def fetch_all_opportunities() -> list:
+def fetch_all_opportunities(type: str) -> list:
     headers = {"X-API-Key": API_KEY, "Content-Type": "application/json"}
     all_opps, page = [], 1
 
     while page <= MAX_PAGES:
-        resp = requests.post(SEARCH_ENDPOINT, json=build_payload(page), headers=headers, timeout=30)
+        resp = requests.post(SEARCH_ENDPOINT, json=build_payload(page, type), headers=headers, timeout=30)
 
         if resp.status_code == 401:
             print("ERROR: Invalid API key.")
@@ -123,10 +133,23 @@ def strip_html(text: str) -> str:
     return re.sub(r"<[^>]+>", "", text).strip()
 
 
+def norm_date(date: str) -> str:
+    if not date:
+        return ""
+
+    parsed = pd.to_datetime(
+        date,
+        format="ISO8601",
+        utc=True,
+        errors="coerce"
+    )
+
+    return parsed.strftime("%Y-%m-%d") if pd.notna(parsed) else ""
+
+
 def extract_fields(opp: dict) -> dict:
     summary     = opp.get("summary") or {}
     forecasts   = opp.get("forecasts") or {}
-    is_forecast = opp.get("opportunity_status", "") == "forecasted"
 
     al_raw = opp.get("opportunity_assistance_listings") or []
     al_str = " | ".join(
@@ -143,26 +166,27 @@ def extract_fields(opp: dict) -> dict:
     addl_elig = (summary.get("applicant_eligibility") or {}).get("additional_info_on_eligibility", "")
 
     return {
-        "Opportunity ID":                        opp_number,
-        "Title":                                 opp.get("opportunity_title", ""),
-        "Post Date":                             summary.get("post_date") or opp.get("post_date", ""),
-        "Est. # of Awards":                      summary.get("expected_number_of_awards"),
-        "Est. Total Funding":                    summary.get("estimated_total_program_funding"),
-        "Award Ceiling":                         summary.get("award_ceiling"),
+        "Opportunity ID":                        opp_id,
+        "Opportunity Number":                    opp_number,
+        "Title":                                 opp.get("opportunity_title") or "",
+        "Agency":                                opp.get("agency_code") or "",
+        "Post Date":                             norm_date(summary.get("post_date") or opp.get("post_date") or ""),
+        "Deadline":                              norm_date(summary.get("close_date") or opp.get("close_date") or ""),
+        "Est. NOFO Date":                        norm_date((forecasts or {}).get("post_date") or ""),
+        "Est. Application Deadline":             norm_date((forecasts or {}).get("close_date") or ""),
+        "Est. # of Awards":                      summary.get("expected_number_of_awards") or "",
+        "Est. Total Funding":                    summary.get("estimated_total_program_funding") or "",
+        "Award Ceiling":                         summary.get("award_ceiling") or "",
+        "Award Floor":                           summary.get("award_floor") or "",
+        "URL":                                   f"https://simpler.grants.gov/opportunity/{opp_id}" if opp_id else "",
         "Assistance Listings":                   al_str,
         "Funding Instrument Type":               fi_str,
-        "Contact":                               summary.get("agency_email_address", ""),
-        "Deadline":                              summary.get("close_date") or opp.get("close_date", ""),
-        "Est. NOFO Date":                        (forecasts or {}).get("post_date", ""),
-        "Est. Application Deadline":             (forecasts or {}).get("close_date", ""),
-        "Last Updated":                          opp.get("updated_at", ""),
-        "URL":                                   f"https://simpler.grants.gov/opportunity/{opp_id}" if opp_id else "",
-        "Description":                           strip_html(summary.get("summary_description", "")),
-        "Agency":                                opp.get("agency_code", ""),
-        "Status":                                "Forecast" if is_forecast else "Posted",
+        "Contact":                               summary.get("agency_email_address") or "",
+        "Additional Info URL":                   summary.get("additional_info_url") or "",
         "Additional Information on Eligibility": addl_elig,
-        # Internal dedup key — uses opportunity_number to match saved "Opportunity ID" column
-        "_opportunity_id":                       opp_number,
+        "Description":                           strip_html(summary.get("summary_description") or ""),
+        "Status":                                opp.get("opportunity_status") or "",
+        "Last Updated":                          norm_date(summary.get("updated_at") or ""),
     }
 
 
@@ -174,24 +198,29 @@ def load_existing_csv() -> pd.DataFrame:
     return pd.DataFrame()
 
 
-def append_new_rows(existing: pd.DataFrame, incoming: pd.DataFrame) -> tuple[pd.DataFrame, int]:
-    """Return (updated_df, count_of_new_rows). Deduplicates on Opportunity ID."""
+def update_csv(existing: pd.DataFrame, incoming: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
     if existing.empty:
-        return incoming, len(incoming)
-
-    # Always deduplicate against the saved "Opportunity ID" column
-    known_ids = set(existing["Opportunity ID"].dropna())
-    new_rows  = incoming[~incoming["_opportunity_id"].isin(known_ids)]
-    updated   = pd.concat([existing, new_rows], ignore_index=True)
-    return updated, len(new_rows)
+        return incoming, incoming
+    incoming_ids = set(incoming['Opportunity Number'].dropna())
+    known_ids = set(existing['Opportunity Number'].dropna())
+    
+    added_rows = incoming[~incoming["Opportunity Number"].isin(known_ids)]
+    
+    if added_rows.empty:
+        added_rows = pd.DataFrame()
+    
+    existing_rows = existing[~existing['Opportunity Number'].isin(incoming_ids)]
+    updated = pd.concat([existing_rows, incoming], ignore_index=True)
+    
+    return updated, added_rows
 
 
 def save_csv(df: pd.DataFrame):
     CSV_PATH.parent.mkdir(parents=True, exist_ok=True)
-    # Deduplicate on Opportunity ID (keeps last, cleans up any prior duplicates)
+    # Deduplicate on Opportunity Number (keeps last, cleans up any prior duplicates)
     # then drop the internal dedup column before saving
-    df.drop_duplicates(subset=["Opportunity ID"], keep="last") \
-      .drop(columns=["_opportunity_id"], errors="ignore") \
+    df.drop_duplicates(subset=["Opportunity Number"], keep="last") \
+      .drop(columns=["_opportunity_number"], errors="ignore") \
       .to_csv(CSV_PATH, index=False)
 
 
@@ -224,42 +253,80 @@ def post_slack(new_count: int, total_count: int, by_agency: dict):
 # ── MAIN ───────────────────────────────────────────────────────────────────────
 
 def main():
+    days_lookback_date = norm_date(pd.Timestamp.now(tz="UTC") - pd.Timedelta(days=DAYS_LOOKBACK))
     print(f"Starting Grants.gov monitor — {datetime.now().strftime('%Y-%m-%d %H:%M UTC')}")
     print(f"Fetching opportunities from {len(AGENCY_CODES)} agency codes...")
 
-    raw      = fetch_all_opportunities()
-    filtered = [o for o in raw if is_eligible(o)]
-    dropped  = len(raw) - len(filtered)
+    raw_new      = fetch_all_opportunities('new')
+    raw_all      = fetch_all_opportunities('all')
+    filtered_new = [o for o in raw_new if is_eligible(o)]
+    filtered_all = [o for o in raw_all if is_eligible(o)]
+    
+    dropped_new  = len(raw_new) - len(filtered_new)
 
-    print(f"\nFetched: {len(raw)} | After eligibility filter: {len(filtered)} | Dropped: {dropped}")
+    print(f"\nFetched: {len(raw_new)} new opportunities | After eligibility filter: {len(filtered_new)} | Dropped: {dropped_new}")
 
-    if not filtered:
-        print("No eligible opportunities found. Notifying Slack.")
-        post_slack(0, 0, {})
-        return
+    # if not filtered:
+    #     print("No eligible opportunities found. Notifying Slack.")
+    #     post_slack(0, 0, {})
+    #     return
 
-    incoming_df = pd.DataFrame([extract_fields(o) for o in filtered])
+    new_df = pd.DataFrame([extract_fields(o) for o in filtered_new])
+    all_df = pd.DataFrame([extract_fields(o) for o in filtered_all])
+    
+    # set update type for new and updated opportunities
+    new_df["Update Type"] = "New"
+    all_df["Update Type"] = ""
+    
+    # remove duplicates from all opportunites list
+    all_df = all_df[
+        ~all_df["Opportunity ID"].isin(new_df["Opportunity ID"])
+    ].reset_index(drop=True)
+    
+    only_updates_df = all_df[
+        all_df["Last Updated"] >= days_lookback_date
+    ].reset_index(drop=True)
+    
+    only_updates_df["Update Type"] = "Updated"
+    
+    # create final incoming df
+    incoming_df = pd.concat(
+        [only_updates_df, new_df],
+        ignore_index=True
+    )
 
-    # Normalise date columns
-    for col in ["Post Date", "Deadline", "Est. NOFO Date", "Est. Application Deadline"]:
-        incoming_df[col] = pd.to_datetime(incoming_df[col], errors="coerce").dt.strftime("%Y-%m-%d")
-    incoming_df["Last Updated"] = pd.to_datetime(
-        incoming_df["Last Updated"], errors="coerce", utc=True
-    ).dt.strftime("%Y-%m-%d")
-
-    existing_df           = load_existing_csv()
-    updated_df, new_count = append_new_rows(existing_df, incoming_df)
-
+    # load existing df and reset update type
+    existing_df = load_existing_csv()
+    
+    if existing_df.empty:
+        old_df = all_df[
+            all_df["Last Updated"] < days_lookback_date
+            ].reset_index(drop=True)
+        
+        incoming_df = pd.concat(
+            [old_df, incoming_df],
+            ignore_index=True
+        )
+        
+    existing_df['Update Type'] = ""
+    
+    # update and save
+    updated_df, added_df = update_csv(existing_df, incoming_df)
+    new_count = len(added_df)
     save_csv(updated_df)
-    print(f"CSV updated — {new_count} new rows added ({len(updated_df)} total).")
+    
+    
+    print(f"Newly posted within {DAYS_LOOKBACK} days: {sum(updated_df['Update Type'] == 'New')}")
+    print(f"Updated within {DAYS_LOOKBACK} days: {sum(updated_df['Update Type'] == 'Updated')}")
+    print(f"Rows added: {len(added_df)}")
 
     if new_count > 0:
-        new_rows  = updated_df.tail(new_count)
-        by_agency = new_rows["Agency"].value_counts().to_dict()
+        by_agency = added_df["Agency"].value_counts().to_dict()
     else:
         by_agency = {}
 
     post_slack(new_count, len(updated_df), by_agency)
+    print(by_agency)
     print("Done.")
 
 
