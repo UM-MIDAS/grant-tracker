@@ -18,7 +18,7 @@ from pathlib import Path
 
 # ── CONFIGURATION ──────────────────────────────────────────────────────────────
 
-SLACK_WEBHOOK = os.environ["SLACK_WEBHOOK"]
+# SLACK_WEBHOOK = os.environ["SLACK_WEBHOOK"]
 
 PUBLISHED_ENDPOINT  = "https://www.federalregister.gov/api/v1/documents.json"
 PUBLIC_INSP_ENDPOINT = "https://www.federalregister.gov/api/v1/public-inspection-documents.json"
@@ -43,27 +43,33 @@ SEARCH_TERMS = [
     "call for experts",
 ]
 
+AGENCIES = [
+    "national-science-foundation",
+    "energy-department",
+    "defense-department",
+    "national-institute-of-standards-and-technology",
+    "national-aeronautics-and-space-administration",
+    "national-institutes-of-health",
+    "health-and-human-services-department",
+    "national-oceanic-and-atmospheric-administration",
+    "national-geospatial-intelligence-agency",
+    "defense-intelligence-agency",
+    "national-security-agency-central-security-service",
+    "national-technical-information-service",
+    "national-telecommunications-and-information-administration",
+    "science-and-technology-policy-office",
+    "office-of-the-national-cyber-director",
+    "census-bureau",
+    "geological-survey",
+    "federal-aviation-administration",
+    "transportation-department",
+    "homeland-security-department",
+]
+
 # Document types to include.
 # NOTICE covers the vast majority of RFIs and advisory committee items.
 # RULE and PRORULE occasionally contain relevant RFI-style content.
 DOCUMENT_TYPES = ["NOTICE"]
-
-# Fields to request from the API — only fetch what we need
-FIELDS = [
-    "document_number",
-    "title",
-    "publication_date",
-    "agencies",
-    "type",
-    "abstract",
-    "html_url",
-    "pdf_url",
-    "public_inspection_pdf_url",
-    "comments_close_on",
-    "effective_on",
-    "docket_ids",
-    "citation",
-]
 
 # ── PUBLISHED DOCUMENTS FETCH ──────────────────────────────────────────────────
 
@@ -71,19 +77,35 @@ def fetch_published(term: str) -> list:
     """Fetch published Federal Register documents matching a search term."""
     cutoff = (datetime.now(timezone.utc) - timedelta(days=DAYS_LOOKBACK)).strftime("%Y-%m-%d")
     results, page = [], 1
+    
+    fields = [
+        "document_number",
+        "title",
+        "publication_date",
+        "agencies",
+        "type",
+        "abstract",
+        "html_url",
+        "pdf_url",
+        "public_inspection_pdf_url",
+        "comments_close_on",
+        "effective_on",
+        "docket_ids",
+        "citation",
+    ]
 
     while page <= MAX_PAGES:
         params = {
+            "fields[]":                           fields,
             "conditions[term]":                   term,
             "conditions[type][]":                 DOCUMENT_TYPES,
             "conditions[publication_date][gte]":  cutoff,
+            # "conditions[sections][]":             ["science-and-technology"], # new
+            # "conditions[agencies][]":             AGENCIES,
             "per_page":                           PER_PAGE,
             "page":                               page,
             "order":                              "newest",
         }
-        # Add fields
-        for f in FIELDS:
-            params[f"fields[]"] = f
 
         resp = requests.get(PUBLISHED_ENDPOINT, params=params, timeout=30)
         resp.raise_for_status()
@@ -105,14 +127,26 @@ def fetch_public_inspection(term: str) -> list:
     These appear in the Register before the official published version
     and represent the earliest possible awareness of new items.
     """
+    cutoff = (datetime.now(timezone.utc) - timedelta(days=DAYS_LOOKBACK)).strftime("%Y-%m-%d")
+    
+    fields = [
+        "document_number",
+        "title", 
+        "agencies", 
+        "type",
+        # "filing_date", 
+        # "public_inspection_pdf_url", 
+        "html_url"
+    ]
+    
     params = {
-        "conditions[term]":    term,
-        "conditions[type][]":  DOCUMENT_TYPES,
-        "per_page":            PER_PAGE,
+        "fields[]":                 fields,
+        "conditions[term]":         term,               # doesnt work
+        "conditions[type][]":       DOCUMENT_TYPES,     # doesnt work
+        "per_page":                 PER_PAGE,
+        "conditions[available_on]": cutoff,
+        "conditions[agencies][]":   AGENCIES,           # doesnt work
     }
-    for f in ["document_number", "title", "agencies", "type",
-              "filing_date", "public_inspection_pdf_url", "html_url"]:
-        params["fields[]"] = f
 
     resp = requests.get(PUBLIC_INSP_ENDPOINT, params=params, timeout=30)
     resp.raise_for_status()
@@ -254,15 +288,16 @@ def main():
         print(f"  '{term}' → {len(results)} published documents")
 
     # ── Public inspection (pre-publication) ───────────────────────────────────
-    print("\nFetching public inspection (pre-publication) documents...")
-    for term in SEARCH_TERMS:
-        try:
-            results = fetch_public_inspection(term)
-            extracted = [extract_public_inspection(d) for d in results]
-            all_records.extend(extracted)
-            print(f"  '{term}' → {len(results)} public inspection documents")
-        except Exception as e:
-            print(f"  WARNING: Public inspection fetch failed for '{term}': {e}")
+    # print("\nFetching public inspection (pre-publication) documents...")
+    # for term in SEARCH_TERMS:
+    #     try:
+    #         results = fetch_public_inspection(term)
+    #         extracted = [extract_public_inspection(d) for d in results]
+    #         extracted = [d for d in extracted if d['Type'] == "Notice"]
+    #         all_records.extend(extracted)
+    #         print(f"  '{term}' → {len(results)} public inspection documents")
+    #     except Exception as e:
+    #         print(f"  WARNING: Public inspection fetch failed for '{term}': {e}")
 
     print(f"\nTotal records before dedup: {len(all_records)}")
     all_records = dedupe_incoming(all_records)
@@ -270,7 +305,7 @@ def main():
 
     if not all_records:
         print("No items found. Notifying Slack.")
-        post_slack(0, 0, {}, {})
+        # post_slack(0, 0, {}, {})
         return
 
     incoming_df = pd.DataFrame(all_records)
@@ -291,7 +326,7 @@ def main():
     else:
         by_source = by_agency = {}
 
-    post_slack(new_count, len(updated_df), by_source, by_agency)
+    # post_slack(new_count, len(updated_df), by_source, by_agency)
     print("Done.")
 
 
