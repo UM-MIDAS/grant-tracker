@@ -253,8 +253,9 @@ def main(args):
     print(f"\nTotal records fetched: {len(raw)}")
 
     if not raw:
-        print("No opportunities found. Notifying Slack.")
-        post_slack(0, 0, {}, {})
+        print("No opportunities found.")
+        if not args.no_slack():
+            post_slack(0, 0, {}, {})
         return
 
     incoming_df = pd.DataFrame([extract_fields(o) for o in raw])
