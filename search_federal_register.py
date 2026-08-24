@@ -307,7 +307,6 @@ def main(args):
     if not all_records:
         print("No items found.")
         if not args.no_slack:
-            print("Notifying Slack.")
             post_slack(0, 0, {}, {})
         return
 
