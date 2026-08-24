@@ -289,10 +289,11 @@ def main(args):
 
     print(f"\nFetched: {len(raw_new)} new opportunities | After eligibility filter: {len(filtered_new)} | Dropped: {dropped_new}")
 
-    # if not filtered:
-    #     print("No eligible opportunities found. Notifying Slack.")
-    #     post_slack(0, 0, {})
-    #     return
+    if not (filtered_new or filtered_all):
+        print("No eligible opportunities found.")
+        if not args.no_slack:
+            post_slack(0, 0, {})
+        return
 
     new_df = pd.DataFrame([extract_fields(o) for o in filtered_new])
     all_df = pd.DataFrame([extract_fields(o) for o in filtered_all])
