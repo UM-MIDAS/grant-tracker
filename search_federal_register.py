@@ -12,13 +12,14 @@ Secrets required (set in GitHub → Settings → Secrets and variables → Actio
 import os
 import sys
 import requests
+import argparse
 import pandas as pd
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 # ── CONFIGURATION ──────────────────────────────────────────────────────────────
 
-# SLACK_WEBHOOK = os.environ["SLACK_WEBHOOK"]
+SLACK_WEBHOOK = os.environ["SLACK_WEBHOOK"]
 
 PUBLISHED_ENDPOINT  = "https://www.federalregister.gov/api/v1/documents.json"
 PUBLIC_INSP_ENDPOINT = "https://www.federalregister.gov/api/v1/public-inspection-documents.json"
@@ -100,7 +101,7 @@ def fetch_published(term: str) -> list:
             "conditions[term]":                   term,
             "conditions[type][]":                 DOCUMENT_TYPES,
             "conditions[publication_date][gte]":  cutoff,
-            # "conditions[sections][]":             ["science-and-technology"], # new
+            # "conditions[sections][]":             ["science-and-technology"],
             # "conditions[agencies][]":             AGENCIES,
             "per_page":                           PER_PAGE,
             "page":                               page,
@@ -272,7 +273,7 @@ def post_slack(new_count: int, total_count: int, by_source: dict, by_agency: dic
 
 # ── MAIN ───────────────────────────────────────────────────────────────────────
 
-def main():
+def main(args):
     print(f"Starting Federal Register monitor — {datetime.now().strftime('%Y-%m-%d %H:%M UTC')}")
     print(f"Search terms: {', '.join(SEARCH_TERMS)}")
     print(f"Lookback: {DAYS_LOOKBACK} days\n")
@@ -304,8 +305,10 @@ def main():
     print(f"Total records after dedup:  {len(all_records)}")
 
     if not all_records:
-        print("No items found. Notifying Slack.")
-        # post_slack(0, 0, {}, {})
+        print("No items found.")
+        if not args.no_slack:
+            print("Notifying Slack.")
+            post_slack(0, 0, {}, {})
         return
 
     incoming_df = pd.DataFrame(all_records)
@@ -326,9 +329,17 @@ def main():
     else:
         by_source = by_agency = {}
 
-    # post_slack(new_count, len(updated_df), by_source, by_agency)
+    if not args.no_slack:
+        post_slack(new_count, len(updated_df), by_source, by_agency)
+        
     print("Done.")
 
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser()
+
+    parser.add_argument("--no-slack", action="store_true")
+
+    args = parser.parse_args()
+    
+    main(args)
