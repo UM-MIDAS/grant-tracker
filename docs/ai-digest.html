@@ -163,6 +163,22 @@
       font-size: 0.7rem;
       margin-left: 0.2rem;
     }
+    .sort-controls {
+      display: flex;
+      gap: 0.4rem;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .sort-select {
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      background: var(--bg);
+      color: var(--text);
+      font: inherit;
+      font-size: 0.75rem;
+      padding: 0.35rem 0.6rem;
+      min-width: 150px;
+    }
 
     /* ── GRID ── */
     .grid-wrap {
@@ -206,12 +222,25 @@
 
     .card-header {
       display: flex;
-      flex-wrap: wrap;
-      gap: 0.4rem;
-      align-items: center;
+      flex-direction: column;
+      gap: 0.25rem;
       padding-left: 0.75rem;
       margin-left: -1.4rem;
       padding-right: 0;
+    }
+    .card-header-top {
+      display: flex;
+      flex-wrap: nowrap;
+      gap: 0.4rem;
+      align-items: center;
+      width: 100%;
+    }
+    .card-agencies {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.3rem;
+      padding-left: 0;
+      width: 100%;
     }
     .badge {
       font-size: 0.65rem;
@@ -231,10 +260,42 @@
       border-radius: 999px;
       border: 1px solid var(--border);
     }
+    .update-pill {
+      font-size: 0.68rem;
+      font-weight: 700;
+      text-transform: capitalize;
+      padding: 0.18rem 0.45rem;
+      border-radius: 999px;
+      color: white;
+      display: inline-block;
+    }
+    .update-pill.updated { background: #f59e0b; } /* amber */
+    .update-pill.new     { background: #10b981; } /* green */
+    .posted {
+      font-size: 0.72rem;
+      color: var(--muted);
+      background: rgba(255,255,255,0.03);
+      padding: 0.12rem 0.28rem;
+      border-radius: 6px;
+      text-align: left;
+    }
+    .dates {
+      margin-left: auto;
+      display: inline-flex;
+      flex-direction: column;
+      gap: 0.08rem;
+      align-items: flex-start;
+      flex: 0 0 auto;
+      font-family: 'Inter', sans-serif;
+      font-variant-numeric: tabular-nums;
+    }
     .deadline {
       font-size: 0.72rem;
       color: var(--muted);
-      margin-left: auto;
+      background: rgba(255,255,255,0.03);
+      padding: 0.12rem 0.28rem;
+      border-radius: 6px;
+      text-align: left;
     }
 
     .card-title {
@@ -298,8 +359,8 @@
     <p class="header-eyebrow">The Michigan Institute for Data and AI in Society</p>
     <h1>AI & <em>Data Science</em><br>Funding Digest</h1>
     <div class="header-meta">
-      <span><strong>52</strong> opportunities matched</span>
-      <span>Updated August 17, 2026 at 01:17 PM UTC</span>
+      <span><strong>70</strong> opportunities matched</span>
+      <span>Updated August 26, 2026 at 04:48 PM UTC</span>
       <span>Sources: Grants.gov · SAM.gov · Federal Register · NIH · Foundations · Industry</span>
     </div>
   </div>
@@ -312,596 +373,1008 @@
       <input type="search" id="searchInput" placeholder="Filter by keyword…" autocomplete="off">
     </div>
     <div class="filters" id="filters">
-      <button class="filter-btn active" data-filter="all">All <span class="count">52</span></button><button class="filter-btn" data-filter="Foundations" style="--src-color:#9333ea">Foundations <span class="count">1</span></button><button class="filter-btn" data-filter="Grantsgov" style="--src-color:#2563eb">Grants.gov <span class="count">42</span></button><button class="filter-btn" data-filter="Industry" style="--src-color:#dc2626">Industry <span class="count">1</span></button><button class="filter-btn" data-filter="SAMgov" style="--src-color:#7c3aed">SAM.gov <span class="count">6</span></button><button class="filter-btn" data-filter="USAgov-Challenges" style="--src-color:#d97706">USA.gov Challenges <span class="count">2</span></button>
+      <button class="filter-btn active" data-filter="all">All <span class="count">70</span></button><button class="filter-btn" data-filter="Federal-Register" style="--src-color:#0891b2">Federal Register <span class="count">7</span></button><button class="filter-btn" data-filter="Grantsgov" style="--src-color:#2563eb">Grants.gov <span class="count">54</span></button><button class="filter-btn" data-filter="Industry" style="--src-color:#dc2626">Industry <span class="count">1</span></button><button class="filter-btn" data-filter="NIH-Challenges" style="--src-color:#059669">NIH Challenges <span class="count">1</span></button><button class="filter-btn" data-filter="SAMgov" style="--src-color:#7c3aed">SAM.gov <span class="count">4</span></button><button class="filter-btn" data-filter="USAgov-Challenges" style="--src-color:#d97706">USA.gov Challenges <span class="count">3</span></button>
+    </div>
+    <div class="sort-controls">
+      <select id="sortField" class="sort-select" aria-label="Sort opportunities by date">
+        <option value="">Sort by date…</option>
+        <option value="posted" selected>Posted date</option>
+        <option value="deadline">Deadline</option>
+      </select>
+      <select id="sortDirection" class="sort-select" aria-label="Sort direction">
+        <option value="desc" selected>Newest</option>
+        <option value="asc">Oldest</option>
+      </select>
     </div>
   </div>
 </div>
 
 <div class="grid-wrap">
-  <p class="results-count" id="resultsCount">52 opportunities</p>
+  <p class="results-count" id="resultsCount">70 opportunities</p>
   <div class="grid" id="grid">
     
-        <article class="card" data-source="Grantsgov">
+        <article class="card" data-source="Grantsgov" data-posted-date="2026-07-21" data-deadline-date="2026-11-04">
           <div class="card-header" style="border-left: 4px solid #2563eb">
-            <span class="badge" style="background:#2563eb">Grants.gov</span>
-            <span class="agency">NSF</span>
-            
+            <div class="card-header-top">
+              <span class="badge" style="background:#2563eb">Grants.gov</span>
+              
+              <span class="dates"><span class="posted">📌 2026-07-21</span><span class="deadline">📅 2026-11-04</span></span>
+            </div>
+            <div class="card-agencies"><span class="agency">NSF</span></div>
           </div>
-          <h3 class="card-title">Engineering Environmental Resiliency (EER)</h3>
-          <p class="desc">The Engineering Environmental Resiliency (EER) program supports fundamental research to advance resource and energy conservation and recovery, and to safeguard the natural environment and human health. Better use of domestic resources will help make U.S. manufacturing and energy systems more resilient and secure. EER projects advance <mark>artificial intelligence</mark>; biotechnology; quantum science and engi…</p>
-          <a class="cta" href="https://simpler.grants.gov/opportunity/9fd0428f-6476-4c55-815e-af0e963ca605" target="_blank" rel="noopener">View opportunity →</a>
+          <h3 class="card-title">Unlocking Dataset Value for <mark>AI</mark>-Enabled Scientific Discovery (<mark>AI</mark> Datasets)</h3>
+          <p class="desc">This program will advance scientific community datasets to enable scientific discovery and innovation using <mark>artificial intelligence</mark> (<mark>AI</mark>) and other methods. Its goal is to increase the value that can be derived from existing scientific datasets by leveraging novel methods and <mark>artificial intelligence</mark> (<mark>AI</mark>). This will unlock new <mark>AI</mark>-driven insights. It can enable interdisciplinary research. It also ena…</p>
+          <a class="cta" href="https://simpler.grants.gov/opportunity/9bd80298-4f43-40e6-890d-64fed9ef6d41" target="_blank" rel="noopener">View opportunity →</a>
         </article>
-        <article class="card" data-source="Grantsgov">
+        <article class="card" data-source="Grantsgov" data-posted-date="2026-04-24" data-deadline-date="">
           <div class="card-header" style="border-left: 4px solid #2563eb">
-            <span class="badge" style="background:#2563eb">Grants.gov</span>
-            <span class="agency">NSF</span>
-            
+            <div class="card-header-top">
+              <span class="badge" style="background:#2563eb">Grants.gov</span>
+              
+              <span class="dates"><span class="posted">📌 2026-04-24</span><span class="deadline">📅 --</span></span>
+            </div>
+            <div class="card-agencies"><span class="agency">NSF</span></div>
+          </div>
+          <h3 class="card-title">Engineering Biological and Biomedical Systems (EBBS)</h3>
+          <p class="desc">…quired at every scale. Engineering is needed for sensing biomarkers to making proteins to restoring functions of the body. In EBBS, fundamental mechanistic insights are combined with experimental and <mark>computational</mark> techniques. This approach helps develop platforms, devices, organisms, tissues, and processes that bring new understanding and control of biological functions. EBBS supports studies of m…</p>
+          <a class="cta" href="https://simpler.grants.gov/opportunity/b14f024d-b4ee-4c78-b599-18a3c69c0e00" target="_blank" rel="noopener">View opportunity →</a>
+        </article>
+        <article class="card" data-source="Grantsgov" data-posted-date="2026-04-24" data-deadline-date="">
+          <div class="card-header" style="border-left: 4px solid #2563eb">
+            <div class="card-header-top">
+              <span class="badge" style="background:#2563eb">Grants.gov</span>
+              
+              <span class="dates"><span class="posted">📌 2026-04-24</span><span class="deadline">📅 --</span></span>
+            </div>
+            <div class="card-agencies"><span class="agency">NSF</span></div>
           </div>
           <h3 class="card-title">Chemical Process Systems (CPS)</h3>
-          <p class="desc">Society relies on chemical processes to turn raw materials into useful products. The Chemical Process Systems (CPS) program invests in fundamental research on chemical and biochemical processes to make them more efficient, sustainable, and resilient. New CPS technologies for manufacturing, biotechnology, critical minerals, energy, food, and other national priorities will help make the U.S. more co…</p>
+          <p class="desc">…used in gas separations, the recovery of critical minerals, bioprocessing, and protein and water purification. The program supports research in process design and optimization that uses tools such as <mark>artificial intelligence</mark>, <mark>machine learning</mark>, and uncertainty quantification. CPS research also explores quantum information science and engineering; quantum simulation and sensing, for example, may acce…</p>
           <a class="cta" href="https://simpler.grants.gov/opportunity/f7f5692f-7760-439d-9a04-a69de49cb81c" target="_blank" rel="noopener">View opportunity →</a>
         </article>
-        <article class="card" data-source="Grantsgov">
+        <article class="card" data-source="Grantsgov" data-posted-date="2026-03-23" data-deadline-date="2026-11-18">
           <div class="card-header" style="border-left: 4px solid #2563eb">
-            <span class="badge" style="background:#2563eb">Grants.gov</span>
-            <span class="agency">NSF</span>
-            
-          </div>
-          <h3 class="card-title">Transport Phenomena (TP)</h3>
-          <p class="desc">The Transport Phenomena (TP) program supports fundamental research to understand, model, and control the transport of mass, momentum, energy, and species across multiple scales. Innovative TP research supports advances in <mark>artificial intelligence</mark>; manufacturing; biotechnology; microelectronics; energy generation, extraction, and utilization; nuclear energy; quantum science and engineering; and othe…</p>
-          <a class="cta" href="https://simpler.grants.gov/opportunity/e9a0e3f2-91dc-4c48-925e-93ecc7f881f3" target="_blank" rel="noopener">View opportunity →</a>
-        </article>
-        <article class="card" data-source="Grantsgov">
-          <div class="card-header" style="border-left: 4px solid #2563eb">
-            <span class="badge" style="background:#2563eb">Grants.gov</span>
-            <span class="agency">NSF</span>
-            <span class="deadline">⏱ 2026-07-28</span>
-          </div>
-          <h3 class="card-title">Integrated Data Systems & Services</h3>
-          <p class="desc">The Integrated Data Systems and Services (IDSS) program supports operations-level national-scale cyberinfrastructure systems and services that broadly advance and facilitate open, data-intensive and <mark>artificial intelligence</mark>-driven science and engineering research, innovation, and education.
-Through this solicitation, the IDSS program is accepting proposals for three categories of projects:
-
- Catego…</p>
-          <a class="cta" href="https://simpler.grants.gov/opportunity/1c599942-0af2-482e-a9dc-77e14021ebdc" target="_blank" rel="noopener">View opportunity →</a>
-        </article>
-        <article class="card" data-source="Grantsgov">
-          <div class="card-header" style="border-left: 4px solid #2563eb">
-            <span class="badge" style="background:#2563eb">Grants.gov</span>
-            <span class="agency">NSF</span>
-            <span class="deadline">⏱ 2026-07-16</span>
-          </div>
-          <h3 class="card-title">TechAccess: <mark>AI</mark>-Ready America</h3>
-          <p class="desc">TechAccess: <mark>AI</mark>&#8209;Ready America is a national-scale initiative to accelerate <mark>Artificial Intelligence</mark> (<mark>AI</mark>) readiness and adoption across the U.S. by strengthening coordination, leveraging partnerships and resources, filling gaps, and scaling what works&mdash;so local and state priorities can lead in shaping an <mark>AI</mark>-driven economy that benefits all Americans.
-
-
-Unlike initiatives centered around K&…</p>
-          <a class="cta" href="https://simpler.grants.gov/opportunity/1cbf54ae-fe15-47d9-838f-8e25ef9b11fd" target="_blank" rel="noopener">View opportunity →</a>
-        </article>
-        <article class="card" data-source="Grantsgov">
-          <div class="card-header" style="border-left: 4px solid #2563eb">
-            <span class="badge" style="background:#2563eb">Grants.gov</span>
-            <span class="agency">NSF</span>
-            <span class="deadline">⏱ 2026-05-27</span>
+            <div class="card-header-top">
+              <span class="badge" style="background:#2563eb">Grants.gov</span>
+              
+              <span class="dates"><span class="posted">📌 2026-03-23</span><span class="deadline">📅 2026-11-18</span></span>
+            </div>
+            <div class="card-agencies"><span class="agency">NSF</span></div>
           </div>
           <h3 class="card-title">National Science Foundation Fostering Interdisciplinary Networks to Develop Emergent and Responsive Solutions Foundry</h3>
-          <p class="desc">The NSF FINDERS FOUNDRY program supports collaboration among K-12 educators, technologists, and researchers to develop innovative solutions to persistent challenges in learning and workforce development. These challenges are identified by K-12 students, families, and educators. The program aims to create and scale evidence-based practices, tools, and technologies that improve learning outcomes and…</p>
+          <p class="desc">…ed by K-12 students, families, and educators. The program aims to create and scale evidence-based practices, tools, and technologies that improve learning outcomes and prepare students for a digital, <mark>Artificial Intelligence</mark> (<mark>AI</mark>)-driven future. A key focus is early exposure to <mark>AI</mark> to build curiosity, understanding, and readiness for future careers. The program encourages partnerships across sectors …</p>
           <a class="cta" href="https://simpler.grants.gov/opportunity/f892bfb3-ae6b-4b13-8241-93aecc115428" target="_blank" rel="noopener">View opportunity →</a>
         </article>
-        <article class="card" data-source="Grantsgov">
+        <article class="card" data-source="Grantsgov" data-posted-date="2026-02-19" data-deadline-date="2026-09-01">
           <div class="card-header" style="border-left: 4px solid #2563eb">
-            <span class="badge" style="background:#2563eb">Grants.gov</span>
-            <span class="agency">NSF</span>
-            <span class="deadline">⏱ 2026-09-01</span>
+            <div class="card-header-top">
+              <span class="badge" style="background:#2563eb">Grants.gov</span>
+              
+              <span class="dates"><span class="posted">📌 2026-02-19</span><span class="deadline">📅 2026-09-01</span></span>
+            </div>
+            <div class="card-agencies"><span class="agency">NSF</span></div>
           </div>
           <h3 class="card-title">Pathways to Enable Secure Open-Source Ecosystems</h3>
-          <p class="desc">The Pathways to Enable Secure Open-Source Ecosystems (PESOSE) program supports the translation of open-source science and engineering-focused research products into safe and sustainable ecosystems that address national and societal challenges. Open-source tools such as software, hardware, <mark>machine learning</mark> models, languages, and data platforms are designed to be shared as they are publicly-accessib…</p>
+          <p class="desc">…tion of open-source science and engineering-focused research products into safe and sustainable ecosystems that address national and societal challenges. Open-source tools such as software, hardware, <mark>machine learning</mark> models, languages, and <mark>data platforms</mark> are designed to be shared as they are publicly-accessible and modifiable. These tools spark innovation in critical fields as varied as artificial…</p>
           <a class="cta" href="https://simpler.grants.gov/opportunity/5405aab0-e416-4386-bd4b-88f2f07dbb0a" target="_blank" rel="noopener">View opportunity →</a>
         </article>
-        <article class="card" data-source="Grantsgov">
+        <article class="card" data-source="Grantsgov" data-posted-date="2026-02-05" data-deadline-date="2026-09-29">
           <div class="card-header" style="border-left: 4px solid #2563eb">
-            <span class="badge" style="background:#2563eb">Grants.gov</span>
-            <span class="agency">NSF</span>
-            <span class="deadline">⏱ 2026-05-14</span>
-          </div>
-          <h3 class="card-title">National Quantum and Nanotechnology Infrastructure</h3>
-          <p class="desc">The U.S. National Science Foundation (NSF) National Quantum and Nanotechnology Infrastructure (NQNI) program will empower researchers nationwide to advance critical and emerging technologies. Through NQNI, NSF will establish an open-access network of research facilities to spur innovations in future quantum technologies, semiconductors, <mark>artificial intelligence</mark>, manufacturing, biotechnology, and ot…</p>
-          <a class="cta" href="https://simpler.grants.gov/opportunity/0c1f4c69-0e24-42ac-975f-e8b19952acc0" target="_blank" rel="noopener">View opportunity →</a>
-        </article>
-        <article class="card" data-source="Grantsgov">
-          <div class="card-header" style="border-left: 4px solid #2563eb">
-            <span class="badge" style="background:#2563eb">Grants.gov</span>
-            <span class="agency">NSF</span>
-            <span class="deadline">⏱ 2026-09-29</span>
+            <div class="card-header-top">
+              <span class="badge" style="background:#2563eb">Grants.gov</span>
+              
+              <span class="dates"><span class="posted">📌 2026-02-05</span><span class="deadline">📅 2026-09-29</span></span>
+            </div>
+            <div class="card-agencies"><span class="agency">NSF</span></div>
           </div>
           <h3 class="card-title">Postdoctoral Research Fellowships in Biology</h3>
           <p class="desc">The integration of <mark>Artificial Intelligence</mark> (<mark>AI</mark>) and Biological Research has the potential to pave the way for breakthroughs in biotechnology and bio-system design that will create innovations, new industries, and jobs. To capitalize on this promise, the Directorate for Biological Sciences (BIO) will make awards for Postdoctoral Research Fellowships in Biology (PRFB) to recent doctoral degree recip…</p>
           <a class="cta" href="https://simpler.grants.gov/opportunity/26ddba31-5cad-48a7-9b78-ac5a5e15154a" target="_blank" rel="noopener">View opportunity →</a>
         </article>
-        <article class="card" data-source="Grantsgov">
+        <article class="card" data-source="Grantsgov" data-posted-date="2025-12-12" data-deadline-date="">
           <div class="card-header" style="border-left: 4px solid #2563eb">
-            <span class="badge" style="background:#2563eb">Grants.gov</span>
-            <span class="agency">NSF</span>
-            <span class="deadline">⏱ 2026-07-21</span>
-          </div>
-          <h3 class="card-title">CyberAICorps Scholarship for Service</h3>
-          <p class="desc">Government and the nation face a talent shortfall in <mark>artificial intelligence</mark> (<mark>AI</mark>) and cybersecurity. The CyberAICorps Scholarship for Service (CyberAI SFS) program welcomes proposals that address <mark>AI</mark> and cybersecurity education and workforce development. CyberAI refers to using <mark>AI</mark> in cybersecurity as well as providing security and resilience for <mark>AI</mark> systems.
-
-
-The Scholarship Track provides funding …</p>
-          <a class="cta" href="https://simpler.grants.gov/opportunity/c3b72a13-83cd-4e74-83d4-a8f130d8cc1b" target="_blank" rel="noopener">View opportunity →</a>
-        </article>
-        <article class="card" data-source="Grantsgov">
-          <div class="card-header" style="border-left: 4px solid #2563eb">
-            <span class="badge" style="background:#2563eb">Grants.gov</span>
-            <span class="agency">NSF</span>
-            
+            <div class="card-header-top">
+              <span class="badge" style="background:#2563eb">Grants.gov</span>
+              
+              <span class="dates"><span class="posted">📌 2025-12-12</span><span class="deadline">📅 --</span></span>
+            </div>
+            <div class="card-agencies"><span class="agency">NSF</span></div>
           </div>
           <h3 class="card-title">Collaboratory to Advance Mathematics Education and Learning (CAMEL) for K-12</h3>
-          <p class="desc">The Collaboratory to Advance Mathematics Education and Learning (CAMEL) for K-12 initiative aims to advance mathematics learning and education through purposeful collaboration that draws on the interdisciplinary Science of Learning (including neuroscience; cognitive, developmental, and social sciences; computer science; <mark>machine learning</mark>; engineering; and education research), deep experiences in ed…</p>
+          <p class="desc">…nce mathematics learning and education through purposeful collaboration that draws on the interdisciplinary Science of Learning (including neuroscience; cognitive, developmental, and social sciences; <mark>computer science</mark>; <mark>machine learning</mark>; engineering; and education research), deep experiences in education practice and teaching, and innovations in the use of <mark>data science</mark>, <mark>AI</mark> and technology. Through an…</p>
           <a class="cta" href="https://simpler.grants.gov/opportunity/25d22ed0-f1fe-4c46-a5b6-0ab60a464f00" target="_blank" rel="noopener">View opportunity →</a>
         </article>
-        <article class="card" data-source="Grantsgov">
+        <article class="card" data-source="Grantsgov" data-posted-date="2025-07-25" data-deadline-date="2026-09-10">
           <div class="card-header" style="border-left: 4px solid #2563eb">
-            <span class="badge" style="background:#2563eb">Grants.gov</span>
-            <span class="agency">NSF</span>
-            <span class="deadline">⏱ 2026-07-24</span>
+            <div class="card-header-top">
+              <span class="badge" style="background:#2563eb">Grants.gov</span>
+              
+              <span class="dates"><span class="posted">📌 2025-07-25</span><span class="deadline">📅 2026-09-10</span></span>
+            </div>
+            <div class="card-agencies"><span class="agency">NSF</span></div>
           </div>
-          <h3 class="card-title">NSF Trailblazer Engineering Impact Award</h3>
-          <p class="desc">The NSF Trailblazer Engineering Impact Award (TRAILBLAZER) program supports individual investigators who propose novel research projects with the potential to innovatively and creatively address new areas of fundamental or applied research, catalyze development of new industries or capabilities that increase the leadership position for the country, and/or make significant progress towards addressi…</p>
-          <a class="cta" href="https://simpler.grants.gov/opportunity/d668c4cc-d773-481d-b659-9c0e02fe3801" target="_blank" rel="noopener">View opportunity →</a>
+          <h3 class="card-title">Computer and Information Science and Engineering (CISE): Future <mark>Computing</mark> Research</h3>
+          <p class="desc">The NSF CISE Directorate supports research and education projects that develop new knowledge in all aspects of <mark>computing</mark>, communications, and information science and engineering through the following Future <mark>Computing</mark> Research (Future CoRe) programs: <mark>Algorithmic</mark> Foundations (AF) program; Communications and Information Foundations (CIF) program; <mark>Computer Systems</mark> Research (CSR) program; <mark>Computing</mark> Edu…</p>
+          <a class="cta" href="https://simpler.grants.gov/opportunity/b543ecd2-b3cb-4280-b709-a4fb2ea82889" target="_blank" rel="noopener">View opportunity →</a>
         </article>
-        <article class="card" data-source="Grantsgov">
+        <article class="card" data-source="Grantsgov" data-posted-date="2025-01-04" data-deadline-date="2027-01-20">
           <div class="card-header" style="border-left: 4px solid #2563eb">
-            <span class="badge" style="background:#2563eb">Grants.gov</span>
-            <span class="agency">NSF</span>
-            <span class="deadline">⏱ 2026-08-07</span>
+            <div class="card-header-top">
+              <span class="badge" style="background:#2563eb">Grants.gov</span>
+              
+              <span class="dates"><span class="posted">📌 2025-01-04</span><span class="deadline">📅 2027-01-20</span></span>
+            </div>
+            <div class="card-agencies"><span class="agency">NSF</span></div>
           </div>
-          <h3 class="card-title">Centers of Research Excellence in Science and Technology - Research Infrastructure for Science and Engineering</h3>
-          <p class="desc">The Centers of Research Excellence in Science and Technology (CREST) program provides support to enhance the research capabilities of minority-serving institutions (MSIs) as defined in this solicitation&rsquo;s Eligibility section, through effective integration of education and research. The CREST program, composed of the CREST Centers, the CREST Postdoctoral Research Program, and the projects sup…</p>
-          <a class="cta" href="https://simpler.grants.gov/opportunity/75cd511d-4b7f-4837-9cfd-1c35ae5b2dc5" target="_blank" rel="noopener">View opportunity →</a>
-        </article>
-        <article class="card" data-source="Grantsgov">
-          <div class="card-header" style="border-left: 4px solid #2563eb">
-            <span class="badge" style="background:#2563eb">Grants.gov</span>
-            <span class="agency">NSF</span>
-            <span class="deadline">⏱ 2027-01-20</span>
-          </div>
-          <h3 class="card-title">Cybersecurity Innovation for Cyberinfrastructure</h3>
-          <p class="desc">The objective of the Cybersecurity Innovation for Cyberinfrastructure (CICI) program is to advance scientific discovery and innovation by enhancing the security and privacy of cyberinfrastructure. CICI supports efforts to develop, deploy and integrate cybersecurity that will benefit the broader scientific community by securing science data, computation, collaborations workflows, and infrastructure…</p>
+          <h3 class="card-title"><mark>Cybersecurity</mark> Innovation for Cyberinfrastructure</h3>
+          <p class="desc">The objective of the <mark>Cybersecurity</mark> Innovation for Cyberinfrastructure (CICI) program is to advance scientific discovery and innovation by enhancing the security and privacy of cyberinfrastructure. CICI supports efforts to develop, deploy and integrate <mark>cybersecurity</mark> that will benefit the broader scientific community by securing science data, computation, collaborations workflows, and infrastructure…</p>
           <a class="cta" href="https://simpler.grants.gov/opportunity/2b5135c3-a845-4edd-a3a3-df496e84ba99" target="_blank" rel="noopener">View opportunity →</a>
         </article>
-        <article class="card" data-source="Grantsgov">
+        <article class="card" data-source="Grantsgov" data-posted-date="2024-12-10" data-deadline-date="">
           <div class="card-header" style="border-left: 4px solid #2563eb">
-            <span class="badge" style="background:#2563eb">Grants.gov</span>
-            <span class="agency">NSF</span>
-            <span class="deadline">⏱ 2027-03-03</span>
+            <div class="card-header-top">
+              <span class="badge" style="background:#2563eb">Grants.gov</span>
+              
+              <span class="dates"><span class="posted">📌 2024-12-10</span><span class="deadline">📅 --</span></span>
+            </div>
+            <div class="card-agencies"><span class="agency">NSF</span></div>
+          </div>
+          <h3 class="card-title">Chemical Evolution of the Solid Earth and Volcanology</h3>
+          <p class="desc">…wledge about the origin and evolution of our home planet including its core, mantle, and continental crust. The program encourages a wide range of laboratory, field, experimental, theoretical, and/or <mark>computational</mark> studies that explore the continuous high-temperature igneous and metamorphic geochemical and petrologic processes that shape the Earth. Volcanology and magmatic processes, ore deposits a…</p>
+          <a class="cta" href="https://simpler.grants.gov/opportunity/7ceb414d-faf3-4792-a2ed-9b4f5075be14" target="_blank" rel="noopener">View opportunity →</a>
+        </article>
+        <article class="card" data-source="Grantsgov" data-posted-date="2024-12-07" data-deadline-date="">
+          <div class="card-header" style="border-left: 4px solid #2563eb">
+            <div class="card-header-top">
+              <span class="badge" style="background:#2563eb">Grants.gov</span>
+              
+              <span class="dates"><span class="posted">📌 2024-12-07</span><span class="deadline">📅 --</span></span>
+            </div>
+            <div class="card-agencies"><span class="agency">NSF</span></div>
+          </div>
+          <h3 class="card-title">Structure and Physics of the Solid Earth</h3>
+          <p class="desc">…volve the structure of planet Earth and underpin geohazards. SPSE supports research at all temporal and spatial scales, from the Earth's core to its crust. Through laboratory, field, theoretical, and <mark>computational</mark> studies, the program encompasses a wide range of disciplines including structural geology, tectonics, and geophysics. Research in these areas can help improve our understanding of natura…</p>
+          <a class="cta" href="https://simpler.grants.gov/opportunity/b01d0f63-1162-4786-beaa-c4a11d07502f" target="_blank" rel="noopener">View opportunity →</a>
+        </article>
+        <article class="card" data-source="Grantsgov" data-posted-date="2024-12-06" data-deadline-date="2026-09-28">
+          <div class="card-header" style="border-left: 4px solid #2563eb">
+            <div class="card-header-top">
+              <span class="badge" style="background:#2563eb">Grants.gov</span>
+              
+              <span class="dates"><span class="posted">📌 2024-12-06</span><span class="deadline">📅 2026-09-28</span></span>
+            </div>
+            <div class="card-agencies"><span class="agency">NSF</span></div>
+          </div>
+          <h3 class="card-title">Security, Privacy, and Trust in Cyberspace</h3>
+          <p class="desc">Our world is at a pivotal moment where the boundaries dividing the physical and social worlds from the <mark>cyber</mark> world have become blurred. Cyberspace has evolved from an interconnected digital environment into a complex and interdependent <mark>cyber</mark> ecosystem that involves hardware, software, networks, data, people, organizations, countries, and the physical world. Critical functions of everyday life are …</p>
+          <a class="cta" href="https://simpler.grants.gov/opportunity/be60945c-b310-496b-aacd-b21483440fa2" target="_blank" rel="noopener">View opportunity →</a>
+        </article>
+        <article class="card" data-source="Grantsgov" data-posted-date="2024-11-14" data-deadline-date="2027-03-03">
+          <div class="card-header" style="border-left: 4px solid #2563eb">
+            <div class="card-header-top">
+              <span class="badge" style="background:#2563eb">Grants.gov</span>
+              
+              <span class="dates"><span class="posted">📌 2024-11-14</span><span class="deadline">📅 2027-03-03</span></span>
+            </div>
+            <div class="card-agencies"><span class="agency">NSF</span></div>
           </div>
           <h3 class="card-title">Coupling, Energetics, and Dynamics of Atmospheric Regions</h3>
-          <p class="desc">The Coupling, Energetics, and Dynamics of Atmospheric Regions (CEDAR) program supports research to increase our understanding of the behavior of atmospheric regions from the middle atmosphere upward through the thermosphere and ionosphere into the exosphere. Projects explore coupling, energetics, chemistry, and dynamics on regional and global scales. The research topics include investigations of u…</p>
+          <p class="desc">… atmospheric perturbations and (b) solar radiation and particle inputs from above. The activities supported by this program include observations from ground-based and space-based platforms, as well as theory and modeling of the upper atmosphere of the Earth and other planets in our solar systems. Novel approaches that include <mark>AI</mark> and <mark>ML</mark> tools and open data and open science practices are encouraged.</p>
           <a class="cta" href="https://simpler.grants.gov/opportunity/c9fd53ee-51ee-4461-83ac-c751c53a294c" target="_blank" rel="noopener">View opportunity →</a>
         </article>
-        <article class="card" data-source="Grantsgov">
+        <article class="card" data-source="Grantsgov" data-posted-date="2024-08-20" data-deadline-date="2027-02-08">
           <div class="card-header" style="border-left: 4px solid #2563eb">
-            <span class="badge" style="background:#2563eb">Grants.gov</span>
-            <span class="agency">NSF</span>
-            
+            <div class="card-header-top">
+              <span class="badge" style="background:#2563eb">Grants.gov</span>
+              
+              <span class="dates"><span class="posted">📌 2024-08-20</span><span class="deadline">📅 2027-02-08</span></span>
+            </div>
+            <div class="card-agencies"><span class="agency">NSF</span></div>
           </div>
-          <h3 class="card-title">Computational and Data-Enabled Science and Engineering</h3>
-          <p class="desc">Large-scale simulations and the ability to accumulate massive amounts of data have revolutionized science and engineering. The goal of the Computational and Data-enabled Science and Engineering (CDS&amp;E) meta-program is to identify and capitalize on opportunities for major scientific and engineering breakthroughs through new computational and data-analysis approaches and best practices. The CDS&…</p>
+          <h3 class="card-title">Mid-scale Research Infrastructure-1</h3>
+          <p class="desc">…tal research capabilities in the mid-scale range between MRI and Major Multi-user Facilities. NSF defines Research Infrastructure (RI) as any combination of facilities, equipment, instrumentation, or <mark>computational</mark> hardware or software, and the necessary human capital in support of the same. Major facilities and mid-scale projects are subsets of research infrastructure. The NSF Mid-scale Research I…</p>
+          <a class="cta" href="https://simpler.grants.gov/opportunity/529df056-4a25-4428-99b4-2afb596b23d9" target="_blank" rel="noopener">View opportunity →</a>
+        </article>
+        <article class="card" data-source="Grantsgov" data-posted-date="2024-08-15" data-deadline-date="">
+          <div class="card-header" style="border-left: 4px solid #2563eb">
+            <div class="card-header-top">
+              <span class="badge" style="background:#2563eb">Grants.gov</span>
+              
+              <span class="dates"><span class="posted">📌 2024-08-15</span><span class="deadline">📅 --</span></span>
+            </div>
+            <div class="card-agencies"><span class="agency">NSF</span></div>
+          </div>
+          <h3 class="card-title"><mark>Computational</mark> and <mark>Data-Enabled</mark> Science and Engineering</h3>
+          <p class="desc">Large-scale simulations and the ability to accumulate massive amounts of data have revolutionized science and engineering. The goal of the <mark>Computational</mark> and <mark>Data-enabled</mark> Science and Engineering (CDS&E) meta-program is to identify and capitalize on opportunities for major scientific and engineering breakthroughs through new <mark>computational</mark> and data-analysis approaches and best practices. The CDS&E me…</p>
           <a class="cta" href="https://simpler.grants.gov/opportunity/66fe85df-7bdd-4d12-bfc4-3150ecb07066" target="_blank" rel="noopener">View opportunity →</a>
         </article>
-        <article class="card" data-source="Grantsgov">
+        <article class="card" data-source="Grantsgov" data-posted-date="2024-06-28" data-deadline-date="2027-04-06">
           <div class="card-header" style="border-left: 4px solid #2563eb">
-            <span class="badge" style="background:#2563eb">Grants.gov</span>
-            <span class="agency">NSF</span>
-            <span class="deadline">⏱ 2026-08-11</span>
+            <div class="card-header-top">
+              <span class="badge" style="background:#2563eb">Grants.gov</span>
+              
+              <span class="dates"><span class="posted">📌 2024-06-28</span><span class="deadline">📅 2027-04-06</span></span>
+            </div>
+            <div class="card-agencies"><span class="agency">NSF</span></div>
           </div>
-          <h3 class="card-title">Research Training Groups in the Mathematical Sciences</h3>
-          <p class="desc">The long-range goal of the Research Training Groups in the Mathematical Sciences (RTG) program is to strengthen the nation's scientific competitiveness by increasing the number of well-prepared U.S. citizens, nationals, and permanent residents who pursue careers in the mathematical sciences, be they in academia, government, or industry. The RTG program supports efforts to improve graduate student …</p>
-          <a class="cta" href="https://simpler.grants.gov/opportunity/4dd82670-26d4-4faa-8b71-a95f25b98d5a" target="_blank" rel="noopener">View opportunity →</a>
+          <h3 class="card-title">NSF National Quantum Virtual Laboratory - Quantum Testbeds</h3>
+          <p class="desc">…v/bill/115th-congress/house-bill/6227 Accelerating Progress Towards Practical Quantum Advantage, A National Science Foundation Project Scoping Workshop (2022),https://arxiv.org/abs/2210.14757 Quantum <mark>Computer Systems</mark> for Scientific Discovery, PRX Quantum 2, 017001 (2021)https://doi.org/10.1103/PRXQuantum.2.017001 Development of Quantum InterConnects for Next-Generation Information Technologies, PR…</p>
+          <a class="cta" href="https://simpler.grants.gov/opportunity/dd97ae1d-d356-4337-a255-5aeeb1160258" target="_blank" rel="noopener">View opportunity →</a>
         </article>
-        <article class="card" data-source="Grantsgov">
+        <article class="card" data-source="Grantsgov" data-posted-date="2024-05-02" data-deadline-date="2026-10-09">
           <div class="card-header" style="border-left: 4px solid #2563eb">
-            <span class="badge" style="background:#2563eb">Grants.gov</span>
-            <span class="agency">NSF</span>
-            <span class="deadline">⏱ 2026-10-09</span>
+            <div class="card-header-top">
+              <span class="badge" style="background:#2563eb">Grants.gov</span>
+              
+              <span class="dates"><span class="posted">📌 2024-05-02</span><span class="deadline">📅 2026-10-09</span></span>
+            </div>
+            <div class="card-agencies"><span class="agency">NSF</span></div>
           </div>
           <h3 class="card-title">Mathematical Foundations of <mark>Artificial Intelligence</mark></h3>
-          <p class="desc"><mark>Machine Learning</mark> and <mark>Artificial Intelligence</mark> (<mark>AI</mark>) are enabling extraordinary scientific breakthroughs in fields ranging from protein folding, <mark>natural language processing</mark>, drug synthesis, and recommender systems to the discovery of novel engineering materials and products. These achievements lie at the confluence of mathematics, statistics, engineering and computer science, yet a clear explanation …</p>
+          <p class="desc"><mark>Machine Learning</mark> and <mark>Artificial Intelligence</mark> (<mark>AI</mark>) are enabling extraordinary scientific breakthroughs in fields ranging from protein folding, <mark>natural language processing</mark>, drug synthesis, and recommender systems to the discovery of novel engineering materials and products. These achievements lie at the confluence of mathematics, statistics, engineering and <mark>computer science</mark>, yet a clear explanation …</p>
           <a class="cta" href="https://simpler.grants.gov/opportunity/508e8ee7-6925-4593-a548-66578974572f" target="_blank" rel="noopener">View opportunity →</a>
         </article>
-        <article class="card" data-source="Grantsgov">
+        <article class="card" data-source="Grantsgov" data-posted-date="2024-04-10" data-deadline-date="">
           <div class="card-header" style="border-left: 4px solid #2563eb">
-            <span class="badge" style="background:#2563eb">Grants.gov</span>
-            <span class="agency">NSF</span>
-            
+            <div class="card-header-top">
+              <span class="badge" style="background:#2563eb">Grants.gov</span>
+              
+              <span class="dates"><span class="posted">📌 2024-04-10</span><span class="deadline">📅 --</span></span>
+            </div>
+            <div class="card-agencies"><span class="agency">NSF</span></div>
           </div>
           <h3 class="card-title">Cyberinfrastructure for Public Access and Open Science</h3>
-          <p class="desc">The Cyberinfrastructurefor Public Access and Open Science (CI PAOS) program within the Office of Advanced Cyberinfrastructure (OAC) aims to catalyze new and transformative socio-technical partnerships supporting research data infrastructure ecosystems across domainsthrough early-stage collaborative activities between cyberinfrastructure researchers, scientists, research computing experts, data man…</p>
+          <p class="desc">…refor Public Access and Open Science (CI PAOS) program within the Office of Advanced Cyberinfrastructure (OAC) aims to catalyze new and transformative socio-technical partnerships supporting research <mark>data infrastructure</mark> ecosystems across domainsthrough early-stage collaborative activities between cyberinfrastructure researchers, scientists, research <mark>computing</mark> experts, data management experts, rese…</p>
           <a class="cta" href="https://simpler.grants.gov/opportunity/5937fcae-3395-414e-968d-0c9f14113657" target="_blank" rel="noopener">View opportunity →</a>
         </article>
-        <article class="card" data-source="Grantsgov">
+        <article class="card" data-source="Grantsgov" data-posted-date="2024-04-05" data-deadline-date="2026-09-08">
           <div class="card-header" style="border-left: 4px solid #2563eb">
-            <span class="badge" style="background:#2563eb">Grants.gov</span>
-            <span class="agency">NSF</span>
-            <span class="deadline">⏱ 2026-09-08</span>
+            <div class="card-header-top">
+              <span class="badge" style="background:#2563eb">Grants.gov</span>
+              
+              <span class="dates"><span class="posted">📌 2024-04-05</span><span class="deadline">📅 2026-09-08</span></span>
+            </div>
+            <div class="card-agencies"><span class="agency">NSF</span></div>
           </div>
           <h3 class="card-title">IUSE/Professional Formation of Engineers:  Revolutionizing Engineering Departments</h3>
-          <p class="desc">Revolutionizing Engineering Departments (hereinafter referred to as RED) is designed to build upon previous efforts in engineering education research. Specifically, previous and ongoing evaluations of the NSF Engineering Education and Centers Division program and its predecessors, as well as those related programs in the Directorate for STEM Education, have shown that prior investments have signif…</p>
+          <p class="desc">… programs in the Directorate for STEM Education, have shown that prior investments have significantly improved the first year of engineering students’ experiences, incorporating engineering material, <mark>active learning</mark> approaches, design instruction, and a broad introduction to professional skills and a sense of professional practice – giving students an idea of what it means to become an engineer. S…</p>
           <a class="cta" href="https://simpler.grants.gov/opportunity/8cdbfe4b-7ea9-49f8-9497-9dc2021866a3" target="_blank" rel="noopener">View opportunity →</a>
         </article>
-        <article class="card" data-source="Grantsgov">
+        <article class="card" data-source="Grantsgov" data-posted-date="2023-10-31" data-deadline-date="2026-10-14">
           <div class="card-header" style="border-left: 4px solid #2563eb">
-            <span class="badge" style="background:#2563eb">Grants.gov</span>
-            <span class="agency">NSF</span>
-            
+            <div class="card-header-top">
+              <span class="badge" style="background:#2563eb">Grants.gov</span>
+              
+              <span class="dates"><span class="posted">📌 2023-10-31</span><span class="deadline">📅 2026-10-14</span></span>
+            </div>
+            <div class="card-agencies"><span class="agency">NSF</span></div>
+          </div>
+          <h3 class="card-title">Research Experiences for Teachers (RET) in Engineering and <mark>Computer Science</mark></h3>
+          <p class="desc">The Research Experiences for Teachers (RET) in Engineering and <mark>Computer Science</mark> program supports authentic summer research experiences for K-14 educators to foster long-term collaborations between universities, community colleges, school districts, and industry partners. With this solicitation, the Directorates for Engineering (ENG) and Computer and Information Science and Engineering (CISE) focus…</p>
+          <a class="cta" href="https://simpler.grants.gov/opportunity/ff8fb939-4ae0-47fd-829d-211f89aa703d" target="_blank" rel="noopener">View opportunity →</a>
+        </article>
+        <article class="card" data-source="Grantsgov" data-posted-date="2023-10-05" data-deadline-date="">
+          <div class="card-header" style="border-left: 4px solid #2563eb">
+            <div class="card-header-top">
+              <span class="badge" style="background:#2563eb">Grants.gov</span>
+              
+              <span class="dates"><span class="posted">📌 2023-10-05</span><span class="deadline">📅 --</span></span>
+            </div>
+            <div class="card-agencies"><span class="agency">NSF</span></div>
           </div>
           <h3 class="card-title">Research Infrastructure in the Social and Behavioral Sciences</h3>
-          <p class="desc">The Research Infrastructure in the Social and Behavioral Sciences Program (RISBS) supports projects that create computational tools and data to facilitate basic research in the social and behavioral sciences that can lead to improved health, prosperity and security.
-
-
-Projects should be aimed at creating computational tools and data to enable research by social scientists. Examples include, but ar…</p>
+          <p class="desc">The Research Infrastructure in the Social and Behavioral Sciences Program (RISBS) supports projects that create <mark>computational</mark> tools and data to facilitate basic research in the social and behavioral sciences that can lead to improved health, prosperity and security. Projects should be aimed at creating <mark>computational</mark> tools and data to enable research by social scientists. Examples include, but are …</p>
           <a class="cta" href="https://simpler.grants.gov/opportunity/b14b3c3b-fdee-4eac-a25f-1d3046b063af" target="_blank" rel="noopener">View opportunity →</a>
         </article>
-        <article class="card" data-source="Grantsgov">
+        <article class="card" data-source="Grantsgov" data-posted-date="2023-09-17" data-deadline-date="">
           <div class="card-header" style="border-left: 4px solid #2563eb">
-            <span class="badge" style="background:#2563eb">Grants.gov</span>
-            <span class="agency">NSF</span>
-            
+            <div class="card-header-top">
+              <span class="badge" style="background:#2563eb">Grants.gov</span>
+              
+              <span class="dates"><span class="posted">📌 2023-09-17</span><span class="deadline">📅 --</span></span>
+            </div>
+            <div class="card-agencies"><span class="agency">NSF</span></div>
           </div>
           <h3 class="card-title">Research in the Formation of Engineers</h3>
-          <p class="desc">The NSF Engineering Directorate (ENG) has launched a multi-year initiative, theProfessional Formation of Engineers, to create and support an innovative and inclusive engineering profession for the 21stcentury. Professional Formation of Engineers (PFE) refers to the formal and informal processes and value systems by which people become engineers. It also includes the ethical responsibility of pract…</p>
+          <p class="desc">…appropriate for studying the professional formation of engineers, and especially minoritized, marginalized, or underserved populations. Research that addresses ways in which new technologies (such as <mark>artificial intelligence</mark> and <mark>machine learning</mark>) are changing engineering education. Research to transform engineering education so that all students encounter environmental and social sustainability pri…</p>
           <a class="cta" href="https://simpler.grants.gov/opportunity/077770e0-41ee-4340-89c7-e720c8892ae9" target="_blank" rel="noopener">View opportunity →</a>
         </article>
-        <article class="card" data-source="Grantsgov">
+        <article class="card" data-source="Grantsgov" data-posted-date="2023-08-29" data-deadline-date="2026-11-16">
           <div class="card-header" style="border-left: 4px solid #2563eb">
-            <span class="badge" style="background:#2563eb">Grants.gov</span>
-            <span class="agency">NSF</span>
-            
+            <div class="card-header-top">
+              <span class="badge" style="background:#2563eb">Grants.gov</span>
+              
+              <span class="dates"><span class="posted">📌 2023-08-29</span><span class="deadline">📅 2026-11-16</span></span>
+            </div>
+            <div class="card-agencies"><span class="agency">NSF</span></div>
           </div>
-          <h3 class="card-title">Condensed Matter and Materials Theory</h3>
-          <p class="desc">CMMT supports theoretical and computational materials research in the topical areas represented in DMR's other Topical Materials Research Programs (these are also variously known as Individual Investigator Award (IIA) Programs, or Core Programs, or Disciplinary Programs), which are: Condensed Matter Physics (CMP), Biomaterials (BMAT), Ceramics (CER), Electronic and Photonic Materials (EPM), Metals…</p>
-          <a class="cta" href="https://simpler.grants.gov/opportunity/5b1da72c-4257-4213-8658-e1e19d367e56" target="_blank" rel="noopener">View opportunity →</a>
+          <h3 class="card-title">Plasma Physics</h3>
+          <p class="desc">… in multiple NSF meta-programs such as the ECosytem for Leading Innovation in Plasma Science and Engineering (ECLIPSE), Windows on the Universe: The Era of Multi-Messenger Astrophysics (WoU-MMA), and <mark>Computational</mark> and <mark>Data-enabled</mark> Science and Engineering (CDS&E). Topically appropriate proposals may also be submitted to the Plasma Physics program in response to NSF Dear Colleague Letters such as Cr…</p>
+          <a class="cta" href="https://simpler.grants.gov/opportunity/5ad87bc8-7d4d-4b27-a676-5a516f771c39" target="_blank" rel="noopener">View opportunity →</a>
         </article>
-        <article class="card" data-source="Grantsgov">
+        <article class="card" data-source="Grantsgov" data-posted-date="2023-05-19" data-deadline-date="">
           <div class="card-header" style="border-left: 4px solid #2563eb">
-            <span class="badge" style="background:#2563eb">Grants.gov</span>
-            <span class="agency">NSF</span>
-            
-          </div>
-          <h3 class="card-title">Catalysis</h3>
-          <p class="desc">The Catalysis program is part of the Chemical Process Systems cluster, which also includes: 1) the Electrochemical Systems program; 2) the Interfacial Engineering program; and 3) the Process Systems, Reaction Engineering, and Molecular Thermodynamics program.
-
-
-The goals of the Catalysis program are to increase fundamental understanding in catalytic engineering science and to advance the developm…</p>
-          <a class="cta" href="https://simpler.grants.gov/opportunity/5b229c57-dfa2-40e1-aaa4-a067d5ba6606" target="_blank" rel="noopener">View opportunity →</a>
-        </article>
-        <article class="card" data-source="Grantsgov">
-          <div class="card-header" style="border-left: 4px solid #2563eb">
-            <span class="badge" style="background:#2563eb">Grants.gov</span>
-            <span class="agency">NSF</span>
-            
-          </div>
-          <h3 class="card-title">Process Systems, Reaction Engineering, and Molecular Thermodynamics</h3>
-          <p class="desc">TheProcess Systems, Reaction Engineering, and Molecular Thermodynamicsprogram is part of the Chemical Process Systems cluster, which also includes: 1) theCatalysisprogram; 2) theElectrochemical Systemsprogram; and 3) theInterfacial Engineeringprogram.
-
-
-The goal of theProcess Systems, Reaction Engineering, and Molecular Thermodynamicsprogram is to advance fundamental engineering research on the r…</p>
-          <a class="cta" href="https://simpler.grants.gov/opportunity/d048f1ed-9dde-4787-bcd4-b42ae96a80e1" target="_blank" rel="noopener">View opportunity →</a>
-        </article>
-        <article class="card" data-source="Grantsgov">
-          <div class="card-header" style="border-left: 4px solid #2563eb">
-            <span class="badge" style="background:#2563eb">Grants.gov</span>
-            <span class="agency">NSF</span>
-            
+            <div class="card-header-top">
+              <span class="badge" style="background:#2563eb">Grants.gov</span>
+              
+              <span class="dates"><span class="posted">📌 2023-05-19</span><span class="deadline">📅 --</span></span>
+            </div>
+            <div class="card-agencies"><span class="agency">NSF</span></div>
           </div>
           <h3 class="card-title">Energy, Power, Control, and Networks</h3>
-          <p class="desc">The Energy, Power, Control, andNetworks (EPCN) Program supports innovative research in modeling, optimization, learning, adaptation, and control of networked multi-agent systems, higher-level decision making, and dynamic resource allocation, as well as risk management in the presence of uncertainty, sub-system failures, and stochastic disturbances. EPCN also invests in novel <mark>machine learning</mark> algor…</p>
+          <p class="desc">… higher-level decision making, and dynamic resource allocation, as well as risk management in the presence of uncertainty, sub-system failures, and stochastic disturbances. EPCN also invests in novel <mark>machine learning</mark> algorithms and analysis, adaptive dynamic programming, brain-like networked architectures performing real-time learning, and neuromorphic engineering. EPCN’s goal is to encourage rese…</p>
           <a class="cta" href="https://simpler.grants.gov/opportunity/599c5796-9954-4aa0-93d2-4a70f0c432ce" target="_blank" rel="noopener">View opportunity →</a>
         </article>
-        <article class="card" data-source="Grantsgov">
+        <article class="card" data-source="Grantsgov" data-posted-date="2023-02-17" data-deadline-date="">
           <div class="card-header" style="border-left: 4px solid #2563eb">
-            <span class="badge" style="background:#2563eb">Grants.gov</span>
-            <span class="agency">NSF</span>
-            
-          </div>
-          <h3 class="card-title">Biophotonics</h3>
-          <p class="desc">TheBiophotonicsprogram is part of the Engineering Biology and Health cluster, which also includes: 1) theBiosensingprogram; 2) theCellular and Biochemical Engineeringprogram; 3) theDisability and Rehabilitation Engineeringprogram; and 4) theEngineering of Biomedical Systemsprogram.
-
-
-The goal of theBiophotonicsprogram is to explore the research frontiers in photonics principles, engineering and t…</p>
-          <a class="cta" href="https://simpler.grants.gov/opportunity/4fcf36a5-f12d-415f-ac60-41ed9c565064" target="_blank" rel="noopener">View opportunity →</a>
-        </article>
-        <article class="card" data-source="Grantsgov">
-          <div class="card-header" style="border-left: 4px solid #2563eb">
-            <span class="badge" style="background:#2563eb">Grants.gov</span>
-            <span class="agency">NSF</span>
-            
-          </div>
-          <h3 class="card-title">Thermal Transport Processes</h3>
-          <p class="desc">TheThermal Transport Processesprogram is part of the Transport Phenomena cluster, which alsoincludes1) theCombustion and Fire Systemsprogram; 2) theFluid Dynamicsprogram; and 3) theParticulate and Multiphase Processesprogram.
-
-
-TheThermal Transport Processesprogram supports engineering research projects that lay the foundation for newadvances in thermal transport phenomena. These projects should …</p>
-          <a class="cta" href="https://simpler.grants.gov/opportunity/36e8deb1-21fa-4b05-9e6a-d622650dfebe" target="_blank" rel="noopener">View opportunity →</a>
-        </article>
-        <article class="card" data-source="Grantsgov">
-          <div class="card-header" style="border-left: 4px solid #2563eb">
-            <span class="badge" style="background:#2563eb">Grants.gov</span>
-            <span class="agency">NSF</span>
-            
-          </div>
-          <h3 class="card-title">Fluid Dynamics</h3>
-          <p class="desc">TheFluid Dynamicsprogram is part of the Transport Phenomena cluster, which also includes 1) theCombustion and Fire Systemsprogram; 2) theParticulate and Multiphase Processesprogram; and 3) theThermal Transport Processesprogram.
-
-
-TheFluid Dynamicsprogram supports fundamental research toward gaining an understanding of the physics of various fluid dynamics phenomena. Proposed research should contr…</p>
-          <a class="cta" href="https://simpler.grants.gov/opportunity/32e29443-6495-4614-a6c7-07786695ee5a" target="_blank" rel="noopener">View opportunity →</a>
-        </article>
-        <article class="card" data-source="Grantsgov">
-          <div class="card-header" style="border-left: 4px solid #2563eb">
-            <span class="badge" style="background:#2563eb">Grants.gov</span>
-            <span class="agency">NSF</span>
-            
+            <div class="card-header-top">
+              <span class="badge" style="background:#2563eb">Grants.gov</span>
+              
+              <span class="dates"><span class="posted">📌 2023-02-17</span><span class="deadline">📅 --</span></span>
+            </div>
+            <div class="card-agencies"><span class="agency">NSF</span></div>
           </div>
           <h3 class="card-title">Communications, Circuits, and Sensing-Systems</h3>
-          <p class="desc">The Communications, Circuits, and Sensing-Systems (CCSS) Program supports innovative research in circuit and system hardware and signal processing techniques. CCSS also supports system and network architectures for communications and sensing to enable the next-generation cyber-physical systems (CPS) that leverage computation, communication, and sensing integrated with physical domains. CCSS invest…</p>
+          <p class="desc">…s innovative research in circuit and system hardware and signal processing techniques. CCSS also supports system and network architectures for communications and sensing to enable the next-generation <mark>cyber</mark>-physical systems (CPS) that leverage computation, communication, and sensing integrated with physical domains. CCSS invests in micro- and nano-electromechanical systems (MEMS/NEMS), physical, ch…</p>
           <a class="cta" href="https://simpler.grants.gov/opportunity/a4d63251-b2fd-4d44-86ac-21da0f120a4c" target="_blank" rel="noopener">View opportunity →</a>
         </article>
-        <article class="card" data-source="Grantsgov">
+        <article class="card" data-source="Grantsgov" data-posted-date="2022-11-22" data-deadline-date="2027-01-21">
           <div class="card-header" style="border-left: 4px solid #2563eb">
-            <span class="badge" style="background:#2563eb">Grants.gov</span>
-            <span class="agency">DOD</span>
-            
+            <div class="card-header-top">
+              <span class="badge" style="background:#2563eb">Grants.gov</span>
+              
+              <span class="dates"><span class="posted">📌 2022-11-22</span><span class="deadline">📅 2027-01-21</span></span>
+            </div>
+            <div class="card-agencies"><span class="agency">NSF</span></div>
+          </div>
+          <h3 class="card-title">Training-based Workforce Development for Advanced Cyberinfrastructure  (CyberTraining)</h3>
+          <p class="desc">… major research advances and to enhance researchers’ abilities to lead the development of new CI, and (ii) integrate core literacy and discipline-appropriate advanced skills in advanced CI as well as <mark>computational</mark> and <mark>data-driven</mark> methods for advancing fundamental research, into the Nation’s undergraduate and graduate educational curriculum/instructional materials. Proposals responding to this soli…</p>
+          <a class="cta" href="https://simpler.grants.gov/opportunity/531f27d8-e616-4612-bf93-c4d912b7fa20" target="_blank" rel="noopener">View opportunity →</a>
+        </article>
+        <article class="card" data-source="Grantsgov" data-posted-date="2022-08-18" data-deadline-date="2026-11-16">
+          <div class="card-header" style="border-left: 4px solid #2563eb">
+            <div class="card-header-top">
+              <span class="badge" style="background:#2563eb">Grants.gov</span>
+              
+              <span class="dates"><span class="posted">📌 2022-08-18</span><span class="deadline">📅 2026-11-16</span></span>
+            </div>
+            <div class="card-agencies"><span class="agency">NSF</span></div>
+          </div>
+          <h3 class="card-title">Advanced Technologies and Instrumentation for the Astronomical Sciences</h3>
+          <p class="desc">…velopment, concept feasibility studies, and specialized instrumentation to enable new observations that are difficult or impossible to obtain with existing means.Proposals may include hardware and/or <mark>software development</mark> and/or analysis to enable new types of astronomical observations. Access to the ATI supported technology and instrumentation development efforts by the US astronomical community i…</p>
+          <a class="cta" href="https://simpler.grants.gov/opportunity/0b70b41e-d616-4689-adc2-b1633401efb3" target="_blank" rel="noopener">View opportunity →</a>
+        </article>
+        <article class="card" data-source="Grantsgov" data-posted-date="2022-07-17" data-deadline-date="2026-09-15">
+          <div class="card-header" style="border-left: 4px solid #2563eb">
+            <div class="card-header-top">
+              <span class="badge" style="background:#2563eb">Grants.gov</span>
+              
+              <span class="dates"><span class="posted">📌 2022-07-17</span><span class="deadline">📅 2026-09-15</span></span>
+            </div>
+            <div class="card-agencies"><span class="agency">NSF</span></div>
+          </div>
+          <h3 class="card-title">NSF Dynamic Language Infrastructure - NEH Documenting Endangered Languages</h3>
+          <p class="desc">…of falling out of use. Made urgent by the imminent loss of roughly half of the approximately 7,000 currently used languages, this effort aims to exploit advances in human-language technology to build <mark>computational</mark> infrastructure for endangered language research. The program supports projects that contribute to data management and archiving, and to the development of the next generation of research…</p>
+          <a class="cta" href="https://simpler.grants.gov/opportunity/23014862-f12e-4005-989e-db47131d311e" target="_blank" rel="noopener">View opportunity →</a>
+        </article>
+        <article class="card" data-source="Grantsgov" data-posted-date="2022-06-18" data-deadline-date="">
+          <div class="card-header" style="border-left: 4px solid #2563eb">
+            <div class="card-header-top">
+              <span class="badge" style="background:#2563eb">Grants.gov</span>
+              
+              <span class="dates"><span class="posted">📌 2022-06-18</span><span class="deadline">📅 --</span></span>
+            </div>
+            <div class="card-agencies"><span class="agency">NSF</span></div>
+          </div>
+          <h3 class="card-title">Division of Chemistry: Disciplinary Research Programs: No Deadline Pilot</h3>
+          <p class="desc">…ated consequences for PIs, reviewers, and institutions. This solicitation applies only to the Chemistry of Life Processes (CLP), Chemical Structure and Dynamics (CSD), and Chemical Theory, Models and <mark>Computational Methods</mark> (CTMC) programs. Other than the following exceptions, all proposals submitted to the CLP, CSD, and CTMC programs must be submitted through this solicitation, otherwise they will …</p>
+          <a class="cta" href="https://simpler.grants.gov/opportunity/c2500e29-7d3e-4f5a-a2fd-161fffca1b00" target="_blank" rel="noopener">View opportunity →</a>
+        </article>
+        <article class="card" data-source="Grantsgov" data-posted-date="2022-05-20" data-deadline-date="2026-11-03">
+          <div class="card-header" style="border-left: 4px solid #2563eb">
+            <div class="card-header-top">
+              <span class="badge" style="background:#2563eb">Grants.gov</span>
+              
+              <span class="dates"><span class="posted">📌 2022-05-20</span><span class="deadline">📅 2026-11-03</span></span>
+            </div>
+            <div class="card-agencies"><span class="agency">NSF</span></div>
+          </div>
+          <h3 class="card-title">Topology</h3>
+          <p class="desc">…nots and links; geometric topology; differential topology; transformation groups; topological quantum field theories; contact and symplectic structures; infinity and model categories; and topological <mark>data analysis</mark>. Conferences Topology proposals for conferences, workshops, summer/winter schools, and similar activities must be submitted to PD 22-1267 using the "Conference" or “Travel” proposal type…</p>
+          <a class="cta" href="https://simpler.grants.gov/opportunity/6bb680a6-1953-4cb5-b983-0c9312848582" target="_blank" rel="noopener">View opportunity →</a>
+        </article>
+        <article class="card" data-source="Grantsgov" data-posted-date="2022-05-20" data-deadline-date="2026-11-03">
+          <div class="card-header" style="border-left: 4px solid #2563eb">
+            <div class="card-header-top">
+              <span class="badge" style="background:#2563eb">Grants.gov</span>
+              
+              <span class="dates"><span class="posted">📌 2022-05-20</span><span class="deadline">📅 2026-11-03</span></span>
+            </div>
+            <div class="card-agencies"><span class="agency">NSF</span></div>
+          </div>
+          <h3 class="card-title">Geometric Analysis</h3>
+          <p class="desc">…ential geometry and its relation to partial differential equations and variational principles; geometric methods in modern mathematical physics; symplectic geometry; geometric group theory; geometric <mark>data analysis</mark>; aspects of global analysis, including convex, complex, integral, and information geometries; and related geometric topics. Conferences Geometric Analysis proposals for conferences, work…</p>
+          <a class="cta" href="https://simpler.grants.gov/opportunity/98140293-39e0-4a8c-9ff1-624cb8ca1618" target="_blank" rel="noopener">View opportunity →</a>
+        </article>
+        <article class="card" data-source="Grantsgov" data-posted-date="2021-07-27" data-deadline-date="">
+          <div class="card-header" style="border-left: 4px solid #2563eb">
+            <div class="card-header-top">
+              <span class="badge" style="background:#2563eb">Grants.gov</span>
+              
+              <span class="dates"><span class="posted">📌 2021-07-27</span><span class="deadline">📅 --</span></span>
+            </div>
+            <div class="card-agencies"><span class="agency">DOD</span></div>
           </div>
           <h3 class="card-title">National Defense Education Program (NDEP) Science, Technology, Engineering, and Mathematics (STEM) Consortia Request for Information (RFI) for the Office of the Under Secretary of Defense (Research & Engineering)</h3>
-          <p class="desc">Request for Information 
- 
-Request for Information: R&amp;ENDEPSTEMFY22RFI 
- 
-Agency/Office:&nbsp;Washington Headquarters Services/Acquisition Directorate (WHS/AD) on behalf of the Office of the Under Secretary of Defense (Research &amp; Engineering) 
- 
-Title:&nbsp;National Defense Education Program (NDEP) Science, Technology, Engineering, and Mathematics (STEM) Consortia Request for Information (…</p>
+          <p class="desc">…rough multi-institution consortia[6] · Promoting transition from 2-year colleges to 4-year degrees in STEM fields · Technical training and certifications through 2-year degree programs, especially in <mark>AI</mark>, <mark>cyber</mark>, and advanced manufacturing Questions to address: Respondents can answer any of the questions #1 - #8, but are not required to respond to all questions #1 - #8. 1. What are the biggest needs…</p>
           <a class="cta" href="https://simpler.grants.gov/opportunity/58c36d1c-2ed3-40b5-adcd-fa09e2377565" target="_blank" rel="noopener">View opportunity →</a>
         </article>
-        <article class="card" data-source="Grantsgov">
+        <article class="card" data-source="Grantsgov" data-posted-date="2021-06-24" data-deadline-date="2026-09-01">
           <div class="card-header" style="border-left: 4px solid #2563eb">
-            <span class="badge" style="background:#2563eb">Grants.gov</span>
-            <span class="agency">NSF</span>
-            <span class="deadline">⏱ 2026-06-01</span>
+            <div class="card-header-top">
+              <span class="badge" style="background:#2563eb">Grants.gov</span>
+              
+              <span class="dates"><span class="posted">📌 2021-06-24</span><span class="deadline">📅 2026-09-01</span></span>
+            </div>
+            <div class="card-agencies"><span class="agency">NSF</span></div>
           </div>
           <h3 class="card-title">Tribal Colleges and Universities Program</h3>
-          <p class="desc">The Tribal Colleges and Universities Program (TCUP) provides awards to federally recognized1  Tribal Colleges and Universities, Alaska Native-serving institutions, and Native Hawaiian-serving institutions to promote high quality science (including sociology, psychology, anthropology, linguistics, economics and bioeconomics, statistics, and other social and behavioral sciences; natural sciences; co…</p>
+          <p class="desc">…utions to promote high quality science (including sociology, psychology, anthropology, linguistics, economics and bioeconomics, statistics, and other social and behavioral sciences; natural sciences; <mark>computer science</mark>, including, but not limited to, <mark>artificial intelligence</mark>, quantum information science, and <mark>cybersecurity</mark>), technology, engineering and mathematics (STEM), STEM education, research, and…</p>
           <a class="cta" href="https://simpler.grants.gov/opportunity/057c2537-c4d5-4b51-b827-e764c81997d4" target="_blank" rel="noopener">View opportunity →</a>
         </article>
-        <article class="card" data-source="Grantsgov">
+        <article class="card" data-source="Grantsgov" data-posted-date="2020-02-14" data-deadline-date="2027-03-31">
           <div class="card-header" style="border-left: 4px solid #2563eb">
-            <span class="badge" style="background:#2563eb">Grants.gov</span>
-            <span class="agency">NSF</span>
-            <span class="deadline">⏱ 2027-03-31</span>
+            <div class="card-header-top">
+              <span class="badge" style="background:#2563eb">Grants.gov</span>
+              
+              <span class="dates"><span class="posted">📌 2020-02-14</span><span class="deadline">📅 2027-03-31</span></span>
+            </div>
+            <div class="card-agencies"><span class="agency">NSF</span></div>
           </div>
-          <h3 class="card-title">Expeditions in Computing</h3>
-          <p class="desc">The far-reaching impact and rate of innovation in the computer and information science and engineering &#64257;elds has been remarkable, generating economic prosperity and enhancing the quality of life for people throughout the world.
-
-
-More than a decade ago, the National Science Foundation&rsquo;s (NSF) Directorate for Computer and Information Science and Engineering (CISE) established the Exped…</p>
+          <h3 class="card-title">Expeditions in <mark>Computing</mark></h3>
+          <p class="desc">The far-reaching impact and rate of innovation in the computer and information science and engineering ﬁelds has been remarkable, generating economic prosperity and enhancing the quality of life for people throughout the world. More than a decade ago, the National Science Foundation’s (NSF) Directorate for Computer and Information Science and Engineering (CISE) established the Expeditions in Compu…</p>
           <a class="cta" href="https://simpler.grants.gov/opportunity/d7411a32-fc22-4455-b33e-9cde49981bc4" target="_blank" rel="noopener">View opportunity →</a>
         </article>
-        <article class="card" data-source="Grantsgov">
+        <article class="card" data-source="Grantsgov" data-posted-date="2020-02-12" data-deadline-date="">
           <div class="card-header" style="border-left: 4px solid #2563eb">
-            <span class="badge" style="background:#2563eb">Grants.gov</span>
-            <span class="agency">NSF</span>
-            <span class="deadline">⏱ 2026-08-05</span>
+            <div class="card-header-top">
+              <span class="badge" style="background:#2563eb">Grants.gov</span>
+              
+              <span class="dates"><span class="posted">📌 2020-02-12</span><span class="deadline">📅 --</span></span>
+            </div>
+            <div class="card-agencies"><span class="agency">NSF</span></div>
           </div>
-          <h3 class="card-title">Science of Learning and Augmented Intelligence</h3>
-          <p class="desc">Science of Learning and Augmented Intelligence (SL) supports potentially transformative research that develops basic theoretical insights and fundamental knowledge about principles, processes and mechanisms of learning, and about augmented intelligence &mdash; how human cognitive function can be augmented through interactions with others or with technology, or through variations in context.
-
-
-The …</p>
-          <a class="cta" href="https://simpler.grants.gov/opportunity/3a5aa6a1-c4ed-4907-8758-5bba1be09394" target="_blank" rel="noopener">View opportunity →</a>
+          <h3 class="card-title">Foundational Research in <mark>Robotics</mark></h3>
+          <p class="desc">The Foundational Research in <mark>Robotics</mark> (FRR) program, jointly led by the CISE and ENG Directorates, supports research on robotic systems that exhibit significant levels of both <mark>computational</mark> capability and physical complexity. For the purposes of this program, a robot is defined as intelligence embodied in an engineered construct, with the ability to process information, sense, plan, and move withi…</p>
+          <a class="cta" href="https://simpler.grants.gov/opportunity/56e4c5bf-fe1e-4ae1-905b-93a9b53cd8d3" target="_blank" rel="noopener">View opportunity →</a>
         </article>
-        <article class="card" data-source="Grantsgov">
+        <article class="card" data-source="Grantsgov" data-posted-date="2018-09-08" data-deadline-date="">
           <div class="card-header" style="border-left: 4px solid #2563eb">
-            <span class="badge" style="background:#2563eb">Grants.gov</span>
-            <span class="agency">NSF</span>
-            
-          </div>
-          <h3 class="card-title">Biosensing</h3>
-          <p class="desc">The Biosensing program is part of the Engineering Biology and Health cluster, which also includes 1) the Biophotonics program; 2) the Cellular and Biochemical Engineering program; 3) the Disability and Rehabilitation Engineering program; and 4) the Engineering of Biomedical Systems program.
-
-
-The Biosensing program supports fundamental engineering research in the monitoring, identification and/or…</p>
-          <a class="cta" href="https://simpler.grants.gov/opportunity/150c6b5c-58b7-4f36-b4ea-177341a92b2c" target="_blank" rel="noopener">View opportunity →</a>
-        </article>
-        <article class="card" data-source="Grantsgov">
-          <div class="card-header" style="border-left: 4px solid #2563eb">
-            <span class="badge" style="background:#2563eb">Grants.gov</span>
-            <span class="agency">NSF</span>
-            
+            <div class="card-header-top">
+              <span class="badge" style="background:#2563eb">Grants.gov</span>
+              
+              <span class="dates"><span class="posted">📌 2018-09-08</span><span class="deadline">📅 --</span></span>
+            </div>
+            <div class="card-agencies"><span class="agency">NSF</span></div>
           </div>
           <h3 class="card-title">Crosscutting Activities in Materials Research</h3>
-          <p class="desc">Crosscutting Activities in Materials Research (XC) coordinates and supports crosscutting activities within the Division of Materials Research (DMR) and more broadly across NSF.
-
-
-The emphasis within XC is diversity and inclusion, international cooperation, and education (including experiential learning at REU/RET Sites). Additionally, activities that broadly engage the community, such as summer sc…</p>
+          <p class="desc">…ams are no longer supported. Education: Innovativeand creative ideas in education (e.g., materials science and/or engineering, solid state and materials chemistry, condensed matterphysics, integrated <mark>computational</mark> materials science/engineering, ormaterials <mark>data science</mark>/analytics) that do not have a forum elsewhere at NSFare of interest. XC encourages outreach and/or materials education proposals t…</p>
           <a class="cta" href="https://simpler.grants.gov/opportunity/1f00aff3-c8ff-4121-92cd-a86f16d17a1d" target="_blank" rel="noopener">View opportunity →</a>
         </article>
-        <article class="card" data-source="Grantsgov">
+        <article class="card" data-source="Grantsgov" data-posted-date="2018-03-29" data-deadline-date="2026-09-22">
           <div class="card-header" style="border-left: 4px solid #2563eb">
-            <span class="badge" style="background:#2563eb">Grants.gov</span>
-            <span class="agency">NSF</span>
-            
+            <div class="card-header-top">
+              <span class="badge" style="background:#2563eb">Grants.gov</span>
+              
+              <span class="dates"><span class="posted">📌 2018-03-29</span><span class="deadline">📅 2026-09-22</span></span>
+            </div>
+            <div class="card-agencies"><span class="agency">NSF</span></div>
           </div>
-          <h3 class="card-title">Engineering Design and Systems Engineering</h3>
-          <p class="desc">The Engineering Design and Systems Engineering (EDSE) program supports fundamental research that advances design science and/or systems science through the creation of new knowledge about the design of engineered artifacts. Engineered artifacts include, but are not limited to, devices, products, processes, platforms, materials, organizations, systems, and systems of systems. The program focuses on…</p>
-          <a class="cta" href="https://simpler.grants.gov/opportunity/7af5a10c-9297-4236-abb2-f7cb8b793498" target="_blank" rel="noopener">View opportunity →</a>
+          <h3 class="card-title">Combinatorics</h3>
+          <p class="desc">The Combinatorics program supports research on discrete structures and includes algebraic, enumerative, existential, extremal, geometric, and probabilistic combinatorics, including <mark>graph theory</mark>. Conferences Principal Investigators should carefully read the program solicitation "Conferences and Workshops in the Mathematical Sciences" (link below) to obtain important information regarding the substa…</p>
+          <a class="cta" href="https://simpler.grants.gov/opportunity/c7f58c02-c805-4434-947e-3e28acfc93eb" target="_blank" rel="noopener">View opportunity →</a>
         </article>
-        <article class="card" data-source="Grantsgov">
+        <article class="card" data-source="Grantsgov" data-posted-date="2015-08-13" data-deadline-date="2026-12-01">
           <div class="card-header" style="border-left: 4px solid #2563eb">
-            <span class="badge" style="background:#2563eb">Grants.gov</span>
-            <span class="agency">NSF</span>
-            
+            <div class="card-header-top">
+              <span class="badge" style="background:#2563eb">Grants.gov</span>
+              
+              <span class="dates"><span class="posted">📌 2015-08-13</span><span class="deadline">📅 2026-12-01</span></span>
+            </div>
+            <div class="card-agencies"><span class="agency">NSF</span></div>
           </div>
-          <h3 class="card-title">Operations Engineering</h3>
-          <p class="desc">The Operations Engineering (OE) program supports fundamental research on advanced analytical methods for improving operations in complex decision-driven environments. Analytical methods include, but are not limited to, deterministic and stochastic modeling, optimization, decision and risk analysis, <mark>data science</mark>, and simulation. Methodological research is highly encouraged but must be motivated by …</p>
-          <a class="cta" href="https://simpler.grants.gov/opportunity/480eb3e8-e8dc-421b-aeda-b7d5f6dcfd69" target="_blank" rel="noopener">View opportunity →</a>
+          <h3 class="card-title"><mark>Computational</mark> Mathematics</h3>
+          <p class="desc">Supports mathematical research in areas where computation plays a central and essential role, emphasizing analysis, development, and implementation of theoretically justified and efficient algorithms. The combination of these elements resulting in innovative <mark>computational methods</mark> is a hallmark of the program. Proposals ranging from single investigator to interdisciplinary team projects that not on…</p>
+          <a class="cta" href="https://simpler.grants.gov/opportunity/ddc111aa-2808-4719-9c09-d7995a9a4860" target="_blank" rel="noopener">View opportunity →</a>
         </article>
-        <article class="card" data-source="Grantsgov">
+        <article class="card" data-source="Grantsgov" data-posted-date="2009-03-06" data-deadline-date="">
           <div class="card-header" style="border-left: 4px solid #2563eb">
-            <span class="badge" style="background:#2563eb">Grants.gov</span>
-            <span class="agency">NSF</span>
-            <span class="deadline">⏱ 2026-07-27</span>
+            <div class="card-header-top">
+              <span class="badge" style="background:#2563eb">Grants.gov</span>
+              
+              <span class="dates"><span class="posted">📌 2009-03-06</span><span class="deadline">📅 --</span></span>
+            </div>
+            <div class="card-agencies"><span class="agency">NSF</span></div>
           </div>
-          <h3 class="card-title">Small Business Innovation Research / Small Business Technology Transfer Phase I, Phase II, Fast-Track Programs (SBIR/STTR): A Pilot Emphasis on Scientific Instrumentation.</h3>
-          <p class="desc">NSF invests in scientific discoveries, technological breakthroughs, and transformative innovations that strengthen economic growth, enhance security, and improve the lives of Americans and people around the world. Our ability to support that mission requires a robust scientific and engineering (S&amp;E) enterprise in the United States that allows scientists to innovate at the frontier. In addition…</p>
+          <h3 class="card-title">Sociology</h3>
+          <p class="desc">…force participation, stratification and mobility, family, social networks, socialization, and the sociology of science and technology. The program supports both original data collection and secondary <mark>data analysis</mark> that use the full range of quantitative and qualitative methodological tools. Theoretically grounded projects that offer methodological innovations and improvements for data collection a…</p>
+          <a class="cta" href="https://simpler.grants.gov/opportunity/64ad28a5-f0c6-402a-aaab-2d355a84ef2e" target="_blank" rel="noopener">View opportunity →</a>
+        </article>
+        <article class="card" data-source="Grantsgov" data-posted-date="2026-05-22" data-deadline-date="2026-11-04">
+          <div class="card-header" style="border-left: 4px solid #2563eb">
+            <div class="card-header-top">
+              <span class="badge" style="background:#2563eb">Grants.gov</span>
+              <span class="update-pill updated">Updated</span>
+              <span class="dates"><span class="posted">📌 2026-05-22</span><span class="deadline">📅 2026-11-04</span></span>
+            </div>
+            <div class="card-agencies"><span class="agency">NSF</span></div>
+          </div>
+          <h3 class="card-title">NSF Small Business Innovation Research / Small Business Technology Transfer Phase I, Phase II, Fast-Track Programs: A Pilot Emphasis on Scientific Instrumentation</h3>
+          <p class="desc">…ic equipment to advance the frontiers of scientific discovery and strengthen the American scientific and engineering enterprise. This encompasses novel instrumentation necessary for the coming era of <mark>AI</mark>-driven discoveries. This pilot will prioritize investing in the necessary infrastructure to support entirely new fields of scientific discovery, making new technological breakthroughs and transform…</p>
           <a class="cta" href="https://simpler.grants.gov/opportunity/78db6f0b-a0e9-4be9-8552-1b5591b5bc93" target="_blank" rel="noopener">View opportunity →</a>
         </article>
-        <article class="card" data-source="Grantsgov">
+        <article class="card" data-source="Grantsgov" data-posted-date="2026-04-24" data-deadline-date="2076-08-20">
           <div class="card-header" style="border-left: 4px solid #2563eb">
-            <span class="badge" style="background:#2563eb">Grants.gov</span>
-            <span class="agency">NSF</span>
-            <span class="deadline">⏱ 2026-11-04</span>
+            <div class="card-header-top">
+              <span class="badge" style="background:#2563eb">Grants.gov</span>
+              <span class="update-pill updated">Updated</span>
+              <span class="dates"><span class="posted">📌 2026-04-24</span><span class="deadline">📅 2076-08-20</span></span>
+            </div>
+            <div class="card-agencies"><span class="agency">NSF</span></div>
           </div>
-          <h3 class="card-title">Unlocking Dataset Value for <mark>AI</mark>-Enabled Scientific Discovery</h3>
-          <p class="desc">This program will advance scientific community datasets to enable scientific discovery and innovation using <mark>artificial intelligence</mark> (<mark>AI</mark>) and other methods. Its goal is to increase the value that can be derived from existing scientific datasets by leveraging novel methods and <mark>artificial intelligence</mark> (<mark>AI</mark>). This will unlock new <mark>AI</mark>-driven insights. It can enable interdisciplinary research. It also ena…</p>
-          <a class="cta" href="https://simpler.grants.gov/opportunity/9bd80298-4f43-40e6-890d-64fed9ef6d41" target="_blank" rel="noopener">View opportunity →</a>
+          <h3 class="card-title">Transport Phenomena (TP)</h3>
+          <p class="desc">…a (TP) program supports fundamental research to understand, model, and control the transport of mass, momentum, energy, and species across multiple scales. Innovative TP research supports advances in <mark>artificial intelligence</mark>; manufacturing; biotechnology; microelectronics; energy generation, extraction, and utilization; nuclear energy; quantum science and engineering; and other national priorities.…</p>
+          <a class="cta" href="https://simpler.grants.gov/opportunity/e9a0e3f2-91dc-4c48-925e-93ecc7f881f3" target="_blank" rel="noopener">View opportunity →</a>
         </article>
-        <article class="card" data-source="Grantsgov">
+        <article class="card" data-source="Grantsgov" data-posted-date="2026-04-15" data-deadline-date="2027-07-27">
           <div class="card-header" style="border-left: 4px solid #2563eb">
-            <span class="badge" style="background:#2563eb">Grants.gov</span>
-            <span class="agency">NSF</span>
-            <span class="deadline">⏱ 2026-11-04</span>
+            <div class="card-header-top">
+              <span class="badge" style="background:#2563eb">Grants.gov</span>
+              <span class="update-pill updated">Updated</span>
+              <span class="dates"><span class="posted">📌 2026-04-15</span><span class="deadline">📅 2027-07-27</span></span>
+            </div>
+            <div class="card-agencies"><span class="agency">NSF</span></div>
+          </div>
+          <h3 class="card-title">Integrated Data Systems & Services (IDSS)</h3>
+          <p class="desc">The Integrated Data Systems and Services (IDSS) program supports operations-level national-scale cyberinfrastructure systems and services that broadly advance and facilitate open, data-intensive and <mark>artificial intelligence</mark>-driven science and engineering research, innovation, and education. Through this solicitation, the IDSS program is accepting proposals for three categories of projects: Category…</p>
+          <a class="cta" href="https://simpler.grants.gov/opportunity/1c599942-0af2-482e-a9dc-77e14021ebdc" target="_blank" rel="noopener">View opportunity →</a>
+        </article>
+        <article class="card" data-source="Grantsgov" data-posted-date="2026-02-04" data-deadline-date="2027-04-05">
+          <div class="card-header" style="border-left: 4px solid #2563eb">
+            <div class="card-header-top">
+              <span class="badge" style="background:#2563eb">Grants.gov</span>
+              <span class="update-pill updated">Updated</span>
+              <span class="dates"><span class="posted">📌 2026-02-04</span><span class="deadline">📅 2027-04-05</span></span>
+            </div>
+            <div class="card-agencies"><span class="agency">NSF</span></div>
+          </div>
+          <h3 class="card-title"><mark>Artificial Intelligence</mark> and <mark>Cybersecurity</mark> Education Innovation and Scholarship for Service (CyberAI SFS)</h3>
+          <p class="desc">Government and the nation face a talent shortfall in <mark>artificial intelligence</mark> (<mark>AI</mark>) and <mark>cybersecurity</mark>. The CyberAICorps Scholarship for Service (CyberAI SFS) program welcomes proposals that address <mark>AI</mark> and <mark>cybersecurity</mark> education and workforce development. CyberAI refers to using <mark>AI</mark> in <mark>cybersecurity</mark> as well as providing security and resilience for <mark>AI</mark> systems. The Scholarship Track provides funding to…</p>
+          <a class="cta" href="https://simpler.grants.gov/opportunity/c3b72a13-83cd-4e74-83d4-a8f130d8cc1b" target="_blank" rel="noopener">View opportunity →</a>
+        </article>
+        <article class="card" data-source="Grantsgov" data-posted-date="2024-02-15" data-deadline-date="">
+          <div class="card-header" style="border-left: 4px solid #2563eb">
+            <div class="card-header-top">
+              <span class="badge" style="background:#2563eb">Grants.gov</span>
+              <span class="update-pill updated">Updated</span>
+              <span class="dates"><span class="posted">📌 2024-02-15</span><span class="deadline">📅 --</span></span>
+            </div>
+            <div class="card-agencies"><span class="agency">NSF</span></div>
+          </div>
+          <h3 class="card-title">Division of Environmental Biology (core programs) (DEB)</h3>
+          <p class="desc">…boratory, or collection-based approaches; observational or manipulative studies; synthesis activities; phylogenetic discovery projects; or theoretical approaches involving analytical, statistical, or <mark>computational modeling</mark>. Proposals should be submitted to the core clusters (Ecosystem Science, Evolutionary Processes, Population and Community Ecology, and Systematics and Biodiversity Science). DEB …</p>
+          <a class="cta" href="https://simpler.grants.gov/opportunity/ba7325bb-1f37-4b10-bfbb-61ecb8528831" target="_blank" rel="noopener">View opportunity →</a>
+        </article>
+        <article class="card" data-source="Grantsgov" data-posted-date="2024-02-14" data-deadline-date="">
+          <div class="card-header" style="border-left: 4px solid #2563eb">
+            <div class="card-header-top">
+              <span class="badge" style="background:#2563eb">Grants.gov</span>
+              <span class="update-pill updated">Updated</span>
+              <span class="dates"><span class="posted">📌 2024-02-14</span><span class="deadline">📅 --</span></span>
+            </div>
+            <div class="card-agencies"><span class="agency">NSF</span></div>
+          </div>
+          <h3 class="card-title">Division of Molecular and Cellular Biosciences Core Programs (MCB)</h3>
+          <p class="desc">…mergent properties. MCB encourages research exploring new concepts in molecular and cellular biology, while incorporating insights and approaches from other scientific disciplines, such as chemistry, <mark>computer science</mark>, engineering, mathematics, and physics, to illuminate principles that govern life at the molecular and cellular level. MCB also encourages research that exploits experimental and theo…</p>
+          <a class="cta" href="https://simpler.grants.gov/opportunity/e1c0a0df-a73b-4d36-bcf7-f218c13322ac" target="_blank" rel="noopener">View opportunity →</a>
+        </article>
+        <article class="card" data-source="Grantsgov" data-posted-date="2024-01-06" data-deadline-date="2026-09-29">
+          <div class="card-header" style="border-left: 4px solid #2563eb">
+            <div class="card-header-top">
+              <span class="badge" style="background:#2563eb">Grants.gov</span>
+              <span class="update-pill updated">Updated</span>
+              <span class="dates"><span class="posted">📌 2024-01-06</span><span class="deadline">📅 2026-09-29</span></span>
+            </div>
+            <div class="card-agencies"><span class="agency">NSF</span></div>
+          </div>
+          <h3 class="card-title">ECosystem for Leading Innovation in Plasma Science and Engineering (ECLIPSE)</h3>
+          <p class="desc">…d functionalized surface coatings. Novel sensor development for highly non-equilibrium plasmas with applications to, e.g., cubesat-based geospace measurements and industrial plasma diagnostics. Novel <mark>computational modeling</mark> for multi-component and/or multi-phase plasma systems with applications to, e.g., space weather prediction and plasma reactor design. Novel studies of plasmons in nano-photonics…</p>
+          <a class="cta" href="https://simpler.grants.gov/opportunity/365a89b2-7d48-48b2-9929-87b7e747d6ab" target="_blank" rel="noopener">View opportunity →</a>
+        </article>
+        <article class="card" data-source="Grantsgov" data-posted-date="2023-08-01" data-deadline-date="">
+          <div class="card-header" style="border-left: 4px solid #2563eb">
+            <div class="card-header-top">
+              <span class="badge" style="background:#2563eb">Grants.gov</span>
+              <span class="update-pill updated">Updated</span>
+              <span class="dates"><span class="posted">📌 2023-08-01</span><span class="deadline">📅 --</span></span>
+            </div>
+            <div class="card-agencies"><span class="agency">NSF</span></div>
+          </div>
+          <h3 class="card-title">Division of Materials Research: Condensed Matter and Materials Theory (CMMT)</h3>
+          <p class="desc">CMMT supports theoretical and <mark>computational</mark> materials research in the topical areas represented in DMR's other Topical Materials Research Programs (these are also variously known as Individual Investigator Award (IIA) Programs, or Core Programs, or Disciplinary Programs), which are: Condensed Matter Physics (CMP), Biomaterials (BMAT), Ceramics (CER), Electronic and Photonic Materials (EPM), Metals…</p>
+          <a class="cta" href="https://simpler.grants.gov/opportunity/5b1da72c-4257-4213-8658-e1e19d367e56" target="_blank" rel="noopener">View opportunity →</a>
+        </article>
+        <article class="card" data-source="Grantsgov" data-posted-date="2026-08-17" data-deadline-date="2076-08-17">
+          <div class="card-header" style="border-left: 4px solid #2563eb">
+            <div class="card-header-top">
+              <span class="badge" style="background:#2563eb">Grants.gov</span>
+              <span class="update-pill new">New</span>
+              <span class="dates"><span class="posted">📌 2026-08-17</span><span class="deadline">📅 2076-08-17</span></span>
+            </div>
+            <div class="card-agencies"><span class="agency">NSF</span></div>
+          </div>
+          <h3 class="card-title">MPS Mathematical Sciences Research Programs (MPS MathSci)</h3>
+          <p class="desc">…ports multiple research programs at the frontiers of discovery in theoretical and applied mathematical sciences. Programs include: Algebra and Number Theory Analysis Applied Mathematics Combinatorics <mark>Computational</mark> Mathematics Foundations Geometric Analysis Mathematical Biology Probability Statistics Topology Mathematical Sciences Research Infrastructure Mathematical Sciences Focused Research Group…</p>
+          <a class="cta" href="https://simpler.grants.gov/opportunity/a98d65b7-8333-4bdc-b123-39f2f7f84ca3" target="_blank" rel="noopener">View opportunity →</a>
+        </article>
+        <article class="card" data-source="Grantsgov" data-posted-date="2026-08-17" data-deadline-date="2027-07-27">
+          <div class="card-header" style="border-left: 4px solid #2563eb">
+            <div class="card-header-top">
+              <span class="badge" style="background:#2563eb">Grants.gov</span>
+              <span class="update-pill new">New</span>
+              <span class="dates"><span class="posted">📌 2026-08-17</span><span class="deadline">📅 2027-07-27</span></span>
+            </div>
+            <div class="card-agencies"><span class="agency">NSF</span></div>
+          </div>
+          <h3 class="card-title">Expeditions in <mark>Computing</mark> (Expeditions)</h3>
+          <p class="desc">The far-reaching impact and rate of innovation in the computer and information science and engineering ﬁelds has been remarkable, generating economic prosperity, and enhancing the quality of life for people. More than a decade ago, the NSF Directorate for Computer and Information Science and Engineering (NSF CISE) established the NSF Expeditions program to provide the NSF CISE research community w…</p>
+          <a class="cta" href="https://simpler.grants.gov/opportunity/f318a7c0-5e0d-40d7-8d3b-d6c077adc198" target="_blank" rel="noopener">View opportunity →</a>
+        </article>
+        <article class="card" data-source="Grantsgov" data-posted-date="2026-08-17" data-deadline-date="2027-02-11">
+          <div class="card-header" style="border-left: 4px solid #2563eb">
+            <div class="card-header-top">
+              <span class="badge" style="background:#2563eb">Grants.gov</span>
+              <span class="update-pill new">New</span>
+              <span class="dates"><span class="posted">📌 2026-08-17</span><span class="deadline">📅 2027-02-11</span></span>
+            </div>
+            <div class="card-agencies"><span class="agency">NSF</span></div>
+          </div>
+          <h3 class="card-title">EMERGING FRONTIERS IN RESEARCH AND INNOVATION (EFRI-2026/27): Wave-Based <mark>Computing</mark> ( EFRI-WBC)</h3>
+          <p class="desc">The Emerging Frontiers in Research and Innovation (EFRI) program serves a critical role in helping the NSF Directorate for Engineering focus on important emerging areas in a timely way. The EFRI program invests in potentially transformative ideas that offer the opportunity for significant shifts in foundational engineering knowledge. EFRI-funded research must have strong potential for long-term im…</p>
+          <a class="cta" href="https://simpler.grants.gov/opportunity/2428d7a5-a82f-456f-88ed-9eb6a3fd91e0" target="_blank" rel="noopener">View opportunity →</a>
+        </article>
+        <article class="card" data-source="Grantsgov" data-posted-date="2026-08-17" data-deadline-date="">
+          <div class="card-header" style="border-left: 4px solid #2563eb">
+            <div class="card-header-top">
+              <span class="badge" style="background:#2563eb">Grants.gov</span>
+              <span class="update-pill new">New</span>
+              <span class="dates"><span class="posted">📌 2026-08-17</span><span class="deadline">📅 --</span></span>
+            </div>
+            <div class="card-agencies"><span class="agency">NSF</span></div>
+          </div>
+          <h3 class="card-title">Emerging Mathematics in Biology (eMB)</h3>
+          <p class="desc">…ons of traditional, but nontrivial, mathematical tools and methods or the development of new mathematical theories particularly from foundational mathematics, including the mathematical foundation of <mark>Artificial Intelligence</mark>/<mark>Deep Learning</mark>/<mark>Machine Learning</mark> (<mark>AI</mark>/DL/<mark>ML</mark>) enabling <mark>explainable AI</mark> or mechanistic insight. The program emphasizes the uses of mathematical methodologies to advance our understan…</p>
+          <a class="cta" href="https://simpler.grants.gov/opportunity/3dececb3-9001-4573-9d33-b96826fe3130" target="_blank" rel="noopener">View opportunity →</a>
+        </article>
+        <article class="card" data-source="Grantsgov" data-posted-date="2026-08-17" data-deadline-date="2076-08-20">
+          <div class="card-header" style="border-left: 4px solid #2563eb">
+            <div class="card-header-top">
+              <span class="badge" style="background:#2563eb">Grants.gov</span>
+              <span class="update-pill new">New</span>
+              <span class="dates"><span class="posted">📌 2026-08-17</span><span class="deadline">📅 2076-08-20</span></span>
+            </div>
+            <div class="card-agencies"><span class="agency">NSF</span></div>
+          </div>
+          <h3 class="card-title">MPS Chemistry Research Programs (MPS Chem)</h3>
+          <p class="desc">…l Catalysis Chemical Measurement and Imaging Chemical Mechanism, Function, and Properties Chemical Structure and Dynamics Chemical Synthesis Chemical Systems and Solutions Chemical Theory, Models and <mark>Computational Methods</mark> Chemistry of Life Processes Macromolecular, Supramolecular, and Nanochemistry NSF MPS is particularly interested in intellectually ambitious and potentially transformative founda…</p>
+          <a class="cta" href="https://simpler.grants.gov/opportunity/6b8f181f-f43c-4307-9fc7-8642ac7bc91c" target="_blank" rel="noopener">View opportunity →</a>
+        </article>
+        <article class="card" data-source="Grantsgov" data-posted-date="2026-08-17" data-deadline-date="2076-08-19">
+          <div class="card-header" style="border-left: 4px solid #2563eb">
+            <div class="card-header-top">
+              <span class="badge" style="background:#2563eb">Grants.gov</span>
+              <span class="update-pill new">New</span>
+              <span class="dates"><span class="posted">📌 2026-08-17</span><span class="deadline">📅 2076-08-19</span></span>
+            </div>
+            <div class="card-agencies"><span class="agency">NSF</span></div>
+          </div>
+          <h3 class="card-title">Engineering (ENG): Electrical, Communications, and <mark>Computing</mark> Systems (ECCS)</h3>
+          <p class="desc">The U.S. National Science Foundation Directorate for Engineering (NSF ENG) supports foundational research for electrical, communications and <mark>computing</mark> systems through the following programs: The Electronic, Photonic, Magnetic, and Quantum Devices (EPMQD) program supports foundational engineering research on novel classical and quantum devices, exploring matter’s electronic, photonic, and magnetic …</p>
+          <a class="cta" href="https://simpler.grants.gov/opportunity/2e05d1e1-8c7b-4b33-a38f-016698ca8309" target="_blank" rel="noopener">View opportunity →</a>
+        </article>
+        <article class="card" data-source="Grantsgov" data-posted-date="2026-08-06" data-deadline-date="2026-11-04">
+          <div class="card-header" style="border-left: 4px solid #2563eb">
+            <div class="card-header-top">
+              <span class="badge" style="background:#2563eb">Grants.gov</span>
+              <span class="update-pill new">New</span>
+              <span class="dates"><span class="posted">📌 2026-08-06</span><span class="deadline">📅 2026-11-04</span></span>
+            </div>
+            <div class="card-agencies"><span class="agency">NSF</span></div>
           </div>
           <h3 class="card-title">U.S. National Science Foundation State and Regional <mark>Artificial Intelligence</mark> Infrastructure Hubs:</h3>
-          <p class="desc">The NSF State and Regional <mark>AI</mark> Infrastructure Hubs program aims to expand access to the compute required for <mark>AI</mark>-enabled scientific discovery and to transform the research, education, and training opportunities offered by institutions of higher education. <mark>AI</mark> Infrastructure Hubs will connect researchers to new compute infrastructure that leverages contributions from state governments, research instit…</p>
+          <p class="desc">The NSF State and Regional <mark>AI</mark> Infrastructure Hubs program aims to expand access to the <mark>compute</mark> required for <mark>AI</mark>-enabled scientific discovery and to transform the research, education, and training opportunities offered by institutions of higher education. <mark>AI</mark> Infrastructure Hubs will connect researchers to new <mark>compute</mark> infrastructure that leverages contributions from state governments, research instit…</p>
           <a class="cta" href="https://simpler.grants.gov/opportunity/7cdf8bba-1af0-452e-8f38-1b8d79786c69" target="_blank" rel="noopener">View opportunity →</a>
         </article>
-        <article class="card" data-source="Grantsgov">
-          <div class="card-header" style="border-left: 4px solid #2563eb">
-            <span class="badge" style="background:#2563eb">Grants.gov</span>
-            <span class="agency">NSF</span>
-            <span class="deadline">⏱ 2076-08-12</span>
-          </div>
-          <h3 class="card-title">Engineering (ENG): Electrical, Communications, and Computing Systems (ECCS)</h3>
-          <p class="desc">The U.S. National Science Foundation Directorate for Engineering (NSF ENG) supports foundational research for electrical, communications and computing systems through the following programs:&nbsp;The Electronic, Photonic, Magnetic, and Quantum Devices (EPMQD) program&nbsp;supports foundational engineering research on novel classical and quantum devices, exploring matter’s electronic, photonic, and…</p>
-          <a class="cta" href="https://simpler.grants.gov/opportunity/ea867dc6-9ade-4d01-8cc0-07e168770867" target="_blank" rel="noopener">View opportunity →</a>
-        </article>
-        <article class="card" data-source="SAMgov">
+        <article class="card" data-source="SAMgov" data-posted-date="2026-08-20" data-deadline-date="2026-11-10T16:00:00-05:00">
           <div class="card-header" style="border-left: 4px solid #7c3aed">
-            <span class="badge" style="background:#7c3aed">SAM.gov</span>
-            <span class="agency">DEF ADVANCED RESEARCH PROJECTS AGCY</span>
-            <span class="deadline">⏱ 2026-05-19T17:00:00-04:00</span>
+            <div class="card-header-top">
+              <span class="badge" style="background:#7c3aed">SAM.gov</span>
+              
+              <span class="dates"><span class="posted">📌 2026-08-20</span><span class="deadline">📅 2026-11-10T16:00:00-05:00</span></span>
+            </div>
+            <div class="card-agencies"><span class="agency">ADVANCED RESEARCH PROJECTS AGENCY FOR HEALTH (ARPA-H)</span></div>
           </div>
-          <h3 class="card-title">Decentralized <mark>Artificial Intelligence</mark> through Controlled Emergence (DICE) Proposers Day</h3>
-          
-          <a class="cta" href="https://sam.gov/workspace/contract/opp/993a9d98cd9444c3bfcfd6856eca90a1/view" target="_blank" rel="noopener">View opportunity →</a>
+          <h3 class="card-title">Fast Assessment of Solutions, Therapeutics, Pharmaceuticals, and SupplieS (FASTPASS) Innovative Solutions Opening</h3>
+          <p class="desc">…e Advanced Research Projects Agency for Health (ARPA-H) Fast Assessment of Solutions, Therapeutics, Pharmaceuticals, and SupplieS (FASTPASS) program aims to develop a near real-time, non-destructive, <mark>AI</mark>-enabled system for screening pharmaceutical products and inputs through their packaging at ports of entry and other supply-chain nodes. Interested parties are invited to review the attached FASTPAS…</p>
+          <a class="cta" href="https://sam.gov/workspace/contract/opp/52f327e1e5ef49aea5fa684551c10f53/view" target="_blank" rel="noopener">View opportunity →</a>
         </article>
-        <article class="card" data-source="SAMgov">
+        <article class="card" data-source="SAMgov" data-posted-date="2026-08-17" data-deadline-date="2026-09-11T12:00:00-04:00">
           <div class="card-header" style="border-left: 4px solid #7c3aed">
-            <span class="badge" style="background:#7c3aed">SAM.gov</span>
-            <span class="agency">DEF ADVANCED RESEARCH PROJECTS AGCY</span>
-            <span class="deadline">⏱ 2026-05-29T23:59:00</span>
+            <div class="card-header-top">
+              <span class="badge" style="background:#7c3aed">SAM.gov</span>
+              
+              <span class="dates"><span class="posted">📌 2026-08-17</span><span class="deadline">📅 2026-09-11T12:00:00-04:00</span></span>
+            </div>
+            <div class="card-agencies"><span class="agency">ADVANCED RESEARCH PROJECTS AGENCY FOR HEALTH (ARPA-H)</span></div>
           </div>
-          <h3 class="card-title">Future Program: Decentralized <mark>Artificial Intelligence</mark> through Controlled Emergence (DICE)</h3>
-          
-          <a class="cta" href="https://sam.gov/workspace/contract/opp/fb9b90efedbd4bae9548a98c75d8fd55/view" target="_blank" rel="noopener">View opportunity →</a>
+          <h3 class="card-title">Advanced Research Projects Agency for Health (ARPA-H) Small Business Innovation Research (SBIR)/Small Business Technology Transfer (STTR) Program</h3>
+          <p class="desc">… detect tissue-specific signatures of immune-mediated stress by assessing circulating cells and/or tissue-specific molecular products. ARPA-H 07 - Virtual Human Brain for the Development of Neurosurgical <mark>Robotics</mark> - The purpose of this topic aims to take a first step toward <mark>AI</mark>-assisted intracranial microsurgery by creating a high-resolution, physically and anatomically accurate virtual human brain.</p>
+          <a class="cta" href="https://sam.gov/workspace/contract/opp/bdd2026ead744527be7b623032a4c79a/view" target="_blank" rel="noopener">View opportunity →</a>
         </article>
-        <article class="card" data-source="SAMgov">
+        <article class="card" data-source="SAMgov" data-posted-date="2026-08-17" data-deadline-date="2026-09-01T17:00:00">
           <div class="card-header" style="border-left: 4px solid #7c3aed">
-            <span class="badge" style="background:#7c3aed">SAM.gov</span>
-            <span class="agency">DEF ADVANCED RESEARCH PROJECTS AGCY</span>
-            <span class="deadline">⏱ 2026-06-22T17:00:00</span>
+            <div class="card-header-top">
+              <span class="badge" style="background:#7c3aed">SAM.gov</span>
+              
+              <span class="dates"><span class="posted">📌 2026-08-17</span><span class="deadline">📅 2026-09-01T17:00:00</span></span>
+            </div>
+            <div class="card-agencies"><span class="agency">DEF ADVANCED RESEARCH PROJECTS AGCY</span></div>
           </div>
-          <h3 class="card-title"><mark>AI</mark> Forge Program: University Research Capabilities for <mark>Artificial Intelligence</mark> (<mark>AI</mark>) Strategic Thrusts Request for Information (RFI)</h3>
-          
-          <a class="cta" href="https://sam.gov/workspace/contract/opp/a077021d13f843a5aa5f0baee00b1097/view" target="_blank" rel="noopener">View opportunity →</a>
+          <h3 class="card-title">Intrinsic Market Resilience (IMR) Proposers Day</h3>
+          <p class="desc">…ntroduced new speed, transparency, and efficiency, but has also created new attack surfaces and systemic risks. Modern markets, which host trading for everything from equities and bonds to energy and <mark>cloud computing</mark> resources, can be manipulated in ways unanticipated by their designers. The 2010 United States Equity market "flash crash" and the 2000-2001 California energy crisis demonstrated how w…</p>
+          <a class="cta" href="https://sam.gov/workspace/contract/opp/dc3a7c9ba65340a9882239eed2ddd85d/view" target="_blank" rel="noopener">View opportunity →</a>
         </article>
-        <article class="card" data-source="SAMgov">
+        <article class="card" data-source="SAMgov" data-posted-date="2026-08-11" data-deadline-date="2026-08-31T23:59:00">
           <div class="card-header" style="border-left: 4px solid #7c3aed">
-            <span class="badge" style="background:#7c3aed">SAM.gov</span>
-            <span class="agency">DEF ADVANCED RESEARCH PROJECTS AGCY</span>
-            <span class="deadline">⏱ 2026-08-25T14:00:00</span>
+            <div class="card-header-top">
+              <span class="badge" style="background:#7c3aed">SAM.gov</span>
+              
+              <span class="dates"><span class="posted">📌 2026-08-11</span><span class="deadline">📅 2026-08-31T23:59:00</span></span>
+            </div>
+            <div class="card-agencies"><span class="agency">DEF ADVANCED RESEARCH PROJECTS AGCY</span></div>
           </div>
-          <h3 class="card-title">Decentralized <mark>Artificial Intelligence</mark> through Controlled Emergence (DICE)</h3>
-          
-          <a class="cta" href="https://sam.gov/workspace/contract/opp/0800655bb5714d68957ce0d5ee922938/view" target="_blank" rel="noopener">View opportunity →</a>
+          <h3 class="card-title">Future Program: Intrinsic Market Resilience (IMR)</h3>
+          <p class="desc">…ntroduced new speed, transparency, and efficiency, but has also created new attack surfaces and systemic risks. Modern markets, which host trading for everything from equities and bonds to energy and <mark>cloud computing</mark> resources, can be manipulated in ways unanticipated by their designers. The 2010 United States Equity market "flash crash" and the 2000-2001 California energy crisis demonstrated how w…</p>
+          <a class="cta" href="https://sam.gov/workspace/contract/opp/16977cc39ea44eb6b9313bcd068f62d6/view" target="_blank" rel="noopener">View opportunity →</a>
         </article>
-        <article class="card" data-source="SAMgov">
-          <div class="card-header" style="border-left: 4px solid #7c3aed">
-            <span class="badge" style="background:#7c3aed">SAM.gov</span>
-            <span class="agency">ADVANCED RESEARCH PROJECTS AGENCY FOR HEALTH (ARPA-H)</span>
-            
+        <article class="card" data-source="Federal-Register" data-posted-date="2026-08-19" data-deadline-date="2026-10-19">
+          <div class="card-header" style="border-left: 4px solid #0891b2">
+            <div class="card-header-top">
+              <span class="badge" style="background:#0891b2">Federal Register</span>
+              
+              <span class="dates"><span class="posted">📌 2026-08-19</span><span class="deadline">📅 2026-10-19</span></span>
+            </div>
+            <div class="card-agencies"><span class="agency">Homeland Security Department</span></div>
           </div>
-          <h3 class="card-title">AURORA Operations, Sustainment, And Agentic <mark>AI</mark> Deployment</h3>
-          
-          <a class="cta" href="https://sam.gov/workspace/contract/opp/70a737e34e22423881c11e2c6dfcaa6e/view" target="_blank" rel="noopener">View opportunity →</a>
+          <h3 class="card-title">Agency Information Collection Activities: The Department of Homeland Security, Emergency Communications Division, Communications Assets Survey and Mapping (CASM) Tool Registration Tool</h3>
+          <p class="desc">The Emergency Communications Division (ECD) within the <mark>Cybersecurity</mark> and Infrastructure Security Agency (CISA) submits the following Information Collection Request (ICR) to the Office of Management and Budget (OMB) for review and clearance.</p>
+          <a class="cta" href="https://www.federalregister.gov/documents/2026/08/19/2026-16877/agency-information-collection-activities-the-department-of-homeland-security-emergency" target="_blank" rel="noopener">View opportunity →</a>
         </article>
-        <article class="card" data-source="SAMgov">
-          <div class="card-header" style="border-left: 4px solid #7c3aed">
-            <span class="badge" style="background:#7c3aed">SAM.gov</span>
-            <span class="agency">DEF ADVANCED RESEARCH PROJECTS AGCY</span>
-            <span class="deadline">⏱ 2026-08-25T14:00:00</span>
+        <article class="card" data-source="Federal-Register" data-posted-date="2026-08-17" data-deadline-date="2026-09-16">
+          <div class="card-header" style="border-left: 4px solid #0891b2">
+            <div class="card-header-top">
+              <span class="badge" style="background:#0891b2">Federal Register</span>
+              
+              <span class="dates"><span class="posted">📌 2026-08-17</span><span class="deadline">📅 2026-09-16</span></span>
+            </div>
+            <div class="card-agencies"><span class="agency">Commerce Department </span><span class="agency"> National Oceanic and Atmospheric Administration</span></div>
           </div>
-          <h3 class="card-title">Decentralized <mark>Artificial Intelligence</mark> through Controlled Emergence (DICE)</h3>
-          
-          <a class="cta" href="https://sam.gov/workspace/contract/opp/1d0790fde85c41a49b59d835f996a6f5/view" target="_blank" rel="noopener">View opportunity →</a>
+          <h3 class="card-title">Notice of Intent To Prepare an Environmental Impact Statement for the Proposed Issuance of an Exploration License to The Metals Company USA, LLC for “USA-B” (EISX-006-48-2CM-1779948024)</h3>
+          <p class="desc">…MRA or "the Act") for the application area designated by TMC-USA as "USA-B." The proposed license, if issued, would authorize TMC-USA to conduct seabed mining exploration activities (e.g., vessel and <mark>autonomous vehicle</mark> operation, sonar use, and deployment of box corers) within the seabed area beyond national jurisdiction for a period of ten years subject to terms, conditions, and restrictions. Thi…</p>
+          <a class="cta" href="https://www.federalregister.gov/documents/2026/08/17/2026-16722/notice-of-intent-to-prepare-an-environmental-impact-statement-for-the-proposed-issuance-of-an" target="_blank" rel="noopener">View opportunity →</a>
         </article>
-        <article class="card" data-source="USAgov-Challenges">
+        <article class="card" data-source="Federal-Register" data-posted-date="2026-08-12" data-deadline-date="2026-10-13">
+          <div class="card-header" style="border-left: 4px solid #0891b2">
+            <div class="card-header-top">
+              <span class="badge" style="background:#0891b2">Federal Register</span>
+              
+              <span class="dates"><span class="posted">📌 2026-08-12</span><span class="deadline">📅 2026-10-13</span></span>
+            </div>
+            <div class="card-agencies"><span class="agency">Commerce Department </span><span class="agency"> National Institute of Standards and Technology</span></div>
+          </div>
+          <h3 class="card-title">Request for Information (RFI) on Modernizing the National Vulnerability Database in the Age of <mark>Artificial Intelligence</mark></h3>
+          <p class="desc">The National Institute of Standards and Technology (NIST) established and operates the National Vulnerability Database (NVD), which provides the U.S. government repository of standards-based vulnerability management data. NIST seeks stakeholder input on opportunities, challenges, and priorities for modernizing the NVD in an evolving <mark>cybersecurity</mark> landscape increasingly shaped by artificial intelli…</p>
+          <a class="cta" href="https://www.federalregister.gov/documents/2026/08/12/2026-16371/request-for-information-rfi-on-modernizing-the-national-vulnerability-database-in-the-age-of" target="_blank" rel="noopener">View opportunity →</a>
+        </article>
+        <article class="card" data-source="Federal-Register" data-posted-date="2026-08-11" data-deadline-date="2026-09-10">
+          <div class="card-header" style="border-left: 4px solid #0891b2">
+            <div class="card-header-top">
+              <span class="badge" style="background:#0891b2">Federal Register</span>
+              
+              <span class="dates"><span class="posted">📌 2026-08-11</span><span class="deadline">📅 2026-09-10</span></span>
+            </div>
+            <div class="card-agencies"><span class="agency">Homeland Security Department</span></div>
+          </div>
+          <h3 class="card-title">Infrastructure Security Division, <mark>Cybersecurity</mark> and Infrastructure Security Agency, Information Collection Activities; Submission to the Office of Management and Budget for Review and Approval; Comment Request; <mark>Cybersecurity</mark> and Infrastructure Security Agency Vulnerability Assessments</h3>
+          <p class="desc">The Infrastructure Security Division, an office within <mark>Cybersecurity</mark> and Infrastructure Security Agency submits the following information collection request) to the Office of Management and Budget for review and clearance. The is an extension of a previously cleared information collection request on November 15, 2023, with an expiration date of November 30, 2026. The purpose of this notice is to a…</p>
+          <a class="cta" href="https://www.federalregister.gov/documents/2026/08/11/2026-16270/infrastructure-security-division-cybersecurity-and-infrastructure-security-agency-information" target="_blank" rel="noopener">View opportunity →</a>
+        </article>
+        <article class="card" data-source="Federal-Register" data-posted-date="2026-08-19" data-deadline-date="">
+          <div class="card-header" style="border-left: 4px solid #0891b2">
+            <div class="card-header-top">
+              <span class="badge" style="background:#0891b2">Federal Register</span>
+              
+              <span class="dates"><span class="posted">📌 2026-08-19</span><span class="deadline">📅 --</span></span>
+            </div>
+            <div class="card-agencies"><span class="agency">Commerce Department </span><span class="agency"> National Oceanic and Atmospheric Administration</span></div>
+          </div>
+          <h3 class="card-title">Solicitation of Nominations for Membership on the NOAA Science Advisory Board (SAB)</h3>
+          <p class="desc">…ent and environmental assessment and prediction. NOAA seeks candidates with expertise in areas relevant to its mission, including Federal, State, and local government; social and behavioral sciences; <mark>artificial intelligence</mark> and <mark>machine learning</mark>; high performance <mark>computing</mark>; data management, including open access and accessibility; uncrewed systems; whale research and conservation; aircraft systems …</p>
+          <a class="cta" href="https://www.federalregister.gov/documents/2026/08/19/2026-16884/solicitation-of-nominations-for-membership-on-the-noaa-science-advisory-board-sab" target="_blank" rel="noopener">View opportunity →</a>
+        </article>
+        <article class="card" data-source="Federal-Register" data-posted-date="2026-08-21" data-deadline-date="2026-09-21">
+          <div class="card-header" style="border-left: 4px solid #0891b2">
+            <div class="card-header-top">
+              <span class="badge" style="background:#0891b2">Federal Register</span>
+              
+              <span class="dates"><span class="posted">📌 2026-08-21</span><span class="deadline">📅 2026-09-21</span></span>
+            </div>
+            <div class="card-agencies"><span class="agency">Education Department</span></div>
+          </div>
+          <h3 class="card-title">Agency Information Collection Activities; Submission to the Office of Management and Budget for Review and Approval; Comment Request; Presidential <mark>Cybersecurity</mark> Education Award</h3>
+          <p class="desc">In accordance with the Paperwork Reduction Act (PRA) of 1995, the Department is proposing a reinstatement without change of a previously approved information collection request (ICR).</p>
+          <a class="cta" href="https://www.federalregister.gov/documents/2026/08/21/2026-17158/agency-information-collection-activities-submission-to-the-office-of-management-and-budget-for" target="_blank" rel="noopener">View opportunity →</a>
+        </article>
+        <article class="card" data-source="Federal-Register" data-posted-date="2026-08-18" data-deadline-date="">
+          <div class="card-header" style="border-left: 4px solid #0891b2">
+            <div class="card-header-top">
+              <span class="badge" style="background:#0891b2">Federal Register</span>
+              
+              <span class="dates"><span class="posted">📌 2026-08-18</span><span class="deadline">📅 --</span></span>
+            </div>
+            <div class="card-agencies"><span class="agency">Civil Rights Commission</span></div>
+          </div>
+          <h3 class="card-title">Notice of Public Meeting of the Maryland Advisory Committee to the U.S. Commission on Civil Rights</h3>
+          <p class="desc">…ons of the U.S. Commission on Civil Rights (Commission) and the Federal Advisory Committee Act, that the Maryland Advisory Committee (Committee) to the Commission will hold a public meeting via Zoom. The purpose is for the committee to continue The purpose is for the committee to continue briefing planning on the chosen topic of <mark>artificial intelligence</mark> and its application in voting administration.</p>
+          <a class="cta" href="https://www.federalregister.gov/documents/2026/08/18/2026-16772/notice-of-public-meeting-of-the-maryland-advisory-committee-to-the-us-commission-on-civil-rights" target="_blank" rel="noopener">View opportunity →</a>
+        </article>
+        <article class="card" data-source="NIH-Challenges" data-posted-date="" data-deadline-date="open until 03/30/26 05:00 PM EDT Learn More">
+          <div class="card-header" style="border-left: 4px solid #059669">
+            <div class="card-header-top">
+              <span class="badge" style="background:#059669">NIH Challenges</span>
+              
+              <span class="dates"><span class="posted">📌 --</span><span class="deadline">📅 open until 03/30/26 05:00 PM EDT Learn More</span></span>
+            </div>
+            <div class="card-agencies"></div>
+          </div>
+          <h3 class="card-title">NIH <mark>Quantum Computing</mark> Challenge</h3>
+          <p class="desc">Solve translational biomedical problems with <mark>quantum computing</mark>. The NIH <mark>Quantum Computing</mark> Challenge seeks to adopt, optimize, and deploy existing quantum algorithms or develop new quantum algorithms for biomedical problems, leading to a set of transformative solutions. Phase 2 open until 03/30/26 05:00 PM EDT</p>
+          <a class="cta" href="https://www.nih.gov/nih-challenges/nih-quantum-computing-challenge" target="_blank" rel="noopener">View opportunity →</a>
+        </article>
+        <article class="card" data-source="USAgov-Challenges" data-posted-date="" data-deadline-date="">
           <div class="card-header" style="border-left: 4px solid #d97706">
-            <span class="badge" style="background:#d97706">USA.gov Challenges</span>
-            
-            
+            <div class="card-header-top">
+              <span class="badge" style="background:#d97706">USA.gov Challenges</span>
+              
+              <span class="dates"><span class="posted">📌 --</span><span class="deadline">📅 --</span></span>
+            </div>
+            <div class="card-agencies"></div>
           </div>
           <h3 class="card-title">ACL Caregiver <mark>AI</mark> Prize Challenge</h3>
           <p class="desc">Help family caregivers and the caregiving industry improve care quality and reduce burden through <mark>artificial intelligence</mark> (<mark>AI</mark>).</p>
           <a class="cta" href="https://www.usa.gov/challenges/acl-caregiver-ai-prize" target="_blank" rel="noopener">View opportunity →</a>
         </article>
-        <article class="card" data-source="USAgov-Challenges">
+        <article class="card" data-source="USAgov-Challenges" data-posted-date="" data-deadline-date="">
           <div class="card-header" style="border-left: 4px solid #d97706">
-            <span class="badge" style="background:#d97706">USA.gov Challenges</span>
-            
-            
+            <div class="card-header-top">
+              <span class="badge" style="background:#d97706">USA.gov Challenges</span>
+              
+              <span class="dates"><span class="posted">📌 --</span><span class="deadline">📅 --</span></span>
+            </div>
+            <div class="card-agencies"></div>
+          </div>
+          <h3 class="card-title">Autonomous Ground Vehicles for Steep Terrain Wildfire Logistics Prize Challenge</h3>
+          <p class="desc">Support wildland firefighters with autonomous and semi-<mark>autonomous vehicle</mark> solutions.</p>
+          <a class="cta" href="https://www.usa.gov/challenge/autonomous-vehicle-wildfire-logistics" target="_blank" rel="noopener">View opportunity →</a>
+        </article>
+        <article class="card" data-source="USAgov-Challenges" data-posted-date="" data-deadline-date="">
+          <div class="card-header" style="border-left: 4px solid #d97706">
+            <div class="card-header-top">
+              <span class="badge" style="background:#d97706">USA.gov Challenges</span>
+              
+              <span class="dates"><span class="posted">📌 --</span><span class="deadline">📅 --</span></span>
+            </div>
+            <div class="card-agencies"></div>
           </div>
           <h3 class="card-title">NASA Space to Soil Challenge</h3>
           <p class="desc">Support NASA's small satellite (smallsat) missions with hardware, software, or hybrid <mark>AI</mark>-driven solutions.</p>
           <a class="cta" href="https://www.usa.gov/challenges/nasa-space-to-soil" target="_blank" rel="noopener">View opportunity →</a>
         </article>
-        <article class="card" data-source="Industry">
+        <article class="card" data-source="Industry" data-posted-date="" data-deadline-date="Rolling">
           <div class="card-header" style="border-left: 4px solid #dc2626">
-            <span class="badge" style="background:#dc2626">Industry</span>
-            <span class="agency">NVIDIA</span>
-            <span class="deadline">⏱ Rolling</span>
+            <div class="card-header-top">
+              <span class="badge" style="background:#dc2626">Industry</span>
+              
+              <span class="dates"><span class="posted">📌 --</span><span class="deadline">📅 Rolling</span></span>
+            </div>
+            <div class="card-agencies"><span class="agency">NVIDIA</span></div>
           </div>
           <h3 class="card-title">NVIDIA Academic Grant Program</h3>
-          <p class="desc">Hardware grants (GPUs) for faculty at accredited institutions. Focus areas include generative <mark>AI</mark>, simulation and modeling, <mark>data science</mark>, and robotics.</p>
+          <p class="desc">Hardware grants (GPUs) for faculty at accredited institutions. Focus areas include <mark>generative AI</mark>, simulation and modeling, <mark>data science</mark>, and <mark>robotics</mark>.</p>
           <a class="cta" href="https://www.nvidia.com/en-us/industries/higher-education-research/academic-grant-program/" target="_blank" rel="noopener">View opportunity →</a>
-        </article>
-        <article class="card" data-source="Foundations">
-          <div class="card-header" style="border-left: 4px solid #9333ea">
-            <span class="badge" style="background:#9333ea">Foundations</span>
-            <span class="agency">Schmidt Sciences</span>
-            
-          </div>
-          <h3 class="card-title">Scaling <mark>AI</mark> Safety for a Multi-Agent World</h3>
-          <p class="desc"><mark>AI</mark> AgentsScience of Trustworthy <mark>AI</mark></p>
-          <a class="cta" href="https://www.schmidtsciences.org/opportunities/" target="_blank" rel="noopener">View opportunity →</a>
         </article>
     <div class="empty hidden" id="emptyState">No matching opportunities found.</div>
   </div>
 </div>
 
 <footer class="footer">
-  Auto-generated by Federal Funding Monitor · <a href="https://github.com/UM-MIDAS/grant-tracker" target="_blank">GitHub</a> · Updated August 17, 2026 at 01:17 PM UTC
+  Auto-generated by Federal Funding Monitor · <a href="https://github.com/your-org/your-repo" target="_blank">GitHub</a> · Updated August 26, 2026 at 04:48 PM UTC
 </footer>
 
 <script>
   const cards      = Array.from(document.querySelectorAll('.card'));
   const searchInput = document.getElementById('searchInput');
   const filterBtns  = document.querySelectorAll('.filter-btn');
+  const sortField   = document.getElementById('sortField');
+  const sortDirection = document.getElementById('sortDirection');
+  const grid        = document.getElementById('grid');
   const countEl     = document.getElementById('resultsCount');
   const emptyEl     = document.getElementById('emptyState');
 
   let activeFilter = 'all';
+
+  function parseDateValue(value) {
+    if (!value) return null;
+    const time = Date.parse(value);
+    return Number.isNaN(time) ? null : time;
+  }
+
+  function updateSortDirectionLabels() {
+    const descOption = sortDirection.options[0];
+    const ascOption = sortDirection.options[1];
+
+    if (sortField.value === 'deadline') {
+      descOption.value = 'asc';
+      descOption.textContent = 'Soonest';
+      ascOption.value = 'desc';
+      ascOption.textContent = 'Latest';
+      if (sortDirection.value !== 'asc' && sortDirection.value !== 'desc') {
+        sortDirection.value = 'asc';
+      }
+    } else if (sortField.value === 'posted') {
+      descOption.value = 'desc';
+      descOption.textContent = 'Newest';
+      ascOption.value = 'asc';
+      ascOption.textContent = 'Oldest';
+      if (sortDirection.value !== 'desc' && sortDirection.value !== 'asc') {
+        sortDirection.value = 'desc';
+      }
+    } else {
+      descOption.value = 'desc';
+      descOption.textContent = 'Descending';
+      ascOption.value = 'asc';
+      ascOption.textContent = 'Ascending';
+    }
+  }
+
+  function sortCards(cardList) {
+    const field = sortField.value;
+    if (!field) return cardList;
+
+    const direction = sortDirection.value === 'asc' ? 1 : -1;
+
+    return [...cardList].sort((a, b) => {
+      const aValue = parseDateValue(a.dataset[field + 'Date']);
+      const bValue = parseDateValue(b.dataset[field + 'Date']);
+
+      if (aValue === null && bValue === null) return 0;
+      if (aValue === null) return 1;
+      if (bValue === null) return -1;
+
+      if (aValue === bValue) return 0;
+      return aValue > bValue ? direction : -direction;
+    });
+  }
 
   function applyFilters() {
     const q = searchInput.value.toLowerCase().trim();
@@ -914,6 +1387,8 @@ The emphasis within XC is diversity and inclusion, international cooperation, an
       card.classList.toggle('hidden', !show);
       if (show) visible++;
     });
+
+    sortCards(cards).forEach(card => grid.insertBefore(card, emptyEl));
 
     countEl.textContent = visible + ' opportunit' + (visible === 1 ? 'y' : 'ies');
     emptyEl.classList.toggle('hidden', visible > 0);
@@ -929,6 +1404,19 @@ The emphasis within XC is diversity and inclusion, international cooperation, an
   });
 
   searchInput.addEventListener('input', applyFilters);
+  sortField.addEventListener('change', () => {
+    updateSortDirectionLabels();
+    if (sortField.value === 'deadline') {
+      sortDirection.value = 'asc';
+    } else if (sortField.value === 'posted') {
+      sortDirection.value = 'desc';
+    }
+    applyFilters();
+  });
+  sortDirection.addEventListener('change', applyFilters);
+
+  updateSortDirectionLabels();
+  applyFilters();
 
   // Stagger card animations
   cards.forEach((card, i) => {

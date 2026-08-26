@@ -1,0 +1,167 @@
+# search_terms.py
+
+SEARCH_TERMS = [
+    # Artificial Intelligence
+    r"\bartificial intelligence\b",
+    r"\bai\b",
+    r"\bintelligent systems?\b",
+
+    # Machine Learning
+    r"\bmachine learning\b",
+    r"(?-i:\bML\b)",
+    r"\bdeep learning\b",
+    r"\bneural networks?\b",
+    r"\bneural nets?\b",
+    r"\brepresentation learning\b",
+    r"\bsupervised learning\b",
+    r"\bunsupervised learning\b",
+    r"\bsemi-supervised learning\b",
+    r"\bself-supervised learning\b",
+    r"\breinforcement learning\b",
+    r"\btransfer learning\b",
+    r"\bfederated learning\b",
+    r"\bcontinual learning\b",
+    r"\bactive learning\b",
+    r"\bmeta-learning\b",
+
+    # Generative AI and Foundation Models
+    r"\bgenerative ai\b",
+    r"\bgenai\b",
+    r"\bfoundation models?\b",
+    r"\blarge language models?\b",
+    r"\bllms?\b",
+    r"\blanguage models?\b",
+    r"\bgenerative models?\b",
+    r"\btransformer models?\b",
+    r"\bdiffusion models?\b",
+    r"\bmultimodal ai\b",
+    r"\bmultimodal models?\b",
+    r"\bvision-language models?\b",
+    r"\bretrieval-augmented generation\b",
+    r"\brag\b",
+    r"\bprompt engineering\b",
+    r"\bai agents?\b",
+    r"\bagentic ai\b",
+    r"\bautonomous agents?\b",
+
+    # Natural Language Processing
+    r"\bnatural language processing\b",
+    r"\bnlp\b",
+    r"\bnatural language understanding\b",
+    r"\bnatural language generation\b",
+    r"\bcomputational linguistics\b",
+    r"\btext mining\b",
+    r"\btext analysis\b",
+    r"\binformation extraction\b",
+    r"\binformation retrieval\b",
+    r"\bquestion answering\b",
+    r"\bsemantic search\b",
+    r"\bspeech recognition\b",
+    r"\bspeech processing\b",
+    r"\bspeech synthesis\b",
+
+    # Computer Vision
+    r"\bcomputer vision\b",
+    r"\bmachine vision\b",
+    r"\bimage recognition\b",
+    r"\bimage processing\b",
+    r"\bimage analysis\b",
+    r"\bvisual recognition\b",
+    r"\bobject detection\b",
+    r"\bimage segmentation\b",
+    r"\bvisual perception\b",
+
+    # Data Science and Analytics
+    r"\bdata science\b",
+    r"\bdata scientist\b",
+    r"\bdata analytics\b",
+    r"\bdata analysis\b",
+    r"\bdata mining\b",
+    r"\bpredictive analytics\b",
+    r"\bpredictive modeling\b",
+    r"\bdata visualization\b",
+    r"\bknowledge discovery\b",
+    r"\bdata-driven\b",
+    r"\bdata-enabled\b",
+
+    # Data Engineering and Big Data
+    r"\bdata engineering\b",
+    r"\bdata engineer(?:ing)?\b",
+    r"\bbig data\b",
+    r"\bdata pipelines?\b",
+    r"\bdata infrastructure\b",
+    r"\bdata platforms?\b",
+    r"\bdata warehouses?\b",
+    r"\bdata lakes?\b",
+    r"\bdata lakehouse\b",
+    r"\bdistributed data\b",
+    r"\bstream processing\b",
+    r"\breal-time data\b",
+
+    # Statistics and Computational Methods
+    r"\bstatistical learning\b",
+    r"\bstatistical modeling\b",
+    r"\bcomputational statistics\b",
+    r"\bprobabilistic modeling\b",
+    r"\bbayesian inference\b",
+    r"\bcausal inference\b",
+    r"\bcausal machine learning\b",
+    r"\bcomputational modeling\b",
+
+    # Computer Science
+    r"\bcomputer science\b",
+    r"\bcomputational science\b",
+    r"\bcomputational methods?\b",
+    r"\bcomputer systems?\b",
+    r"\bsoftware engineering\b",
+    r"\bsoftware development\b",
+    r"\bdistributed systems?\b",
+    r"\bcloud computing\b",
+    r"\bedge computing\b",
+    r"\bparallel computing\b",
+    r"\bhigh-performance computing\b",
+    r"\bhpc\b",
+    r"\bquantum computing\b",
+    r"\bcompute\b",
+    r"\bcomputing\b",
+    r"\bcomputational\b",
+
+    # Algorithms and Theory
+    r"\balgorithmic\b",
+    r"\bcomputational complexity\b",
+    r"\btheoretical computer science\b",
+    r"\bgraph theory\b",
+
+    # Robotics and Autonomous Systems
+    r"\brobotics\b",
+    r"\bautonomous systems?\b",
+    r"\bautonomous vehicles?\b",
+    r"\bhuman-robot interaction\b",
+    r"\bintelligent robotics?\b",
+
+    # AI Safety, Ethics, and Trust
+    r"\bresponsible ai\b",
+    r"\btrustworthy ai\b",
+    r"\bexplainable ai\b",
+    r"\bxai\b",
+    r"\binterpretable machine learning\b",
+    r"\bai safety\b",
+    r"\bai alignment\b",
+    r"\bai ethics\b",
+    r"\balgorithmic fairness\b",
+
+    # AI Infrastructure and Deployment
+    r"\bmlops\b",
+    r"\bmachine learning operations\b",
+    r"\bai infrastructure\b",
+    r"\bmodel deployment\b",
+    r"\bmodel serving\b",
+
+    # Cybersecurity and Privacy
+    r"\bcybersecurity\b",
+    r"\bcyber security\b",
+    r"\bcomputer security\b",
+    r"\binformation security\b",
+    r"\bprivacy-preserving\b",
+    r"\bcyber\b"
+]
