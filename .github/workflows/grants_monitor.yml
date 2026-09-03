@@ -3,7 +3,7 @@ name: Grants.gov Daily Monitor
 on:
   schedule:
     # Runs every weekday at 8:00 AM Eastern (12:00 UTC)
-    - cron: "0 12 * * 1-5"
+    - cron: "0 12 * * 1"
   workflow_dispatch: # allows manual trigger from GitHub Actions tab
 
 jobs:
