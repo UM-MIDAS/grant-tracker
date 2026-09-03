@@ -15,27 +15,28 @@ import re
 import pandas as pd
 from datetime import datetime
 from pathlib import Path
+from search_terms import SEARCH_TERMS
 
-SLACK_WEBHOOK = os.environ.get("SLACK_WEBHOOK", "")
+# SLACK_WEBHOOK = os.environ.get("SLACK_WEBHOOK", "")
 REPO_URL      = "https://github.com/" + os.environ.get("GITHUB_REPOSITORY", "your-org/your-repo")
 PAGES_URL     = "https://" + os.environ.get("GITHUB_REPOSITORY", "your-org/your-repo").replace("/", ".github.io/", 1)
 OUTPUT_PATH   = Path("docs/ai-digest.html")
 
 # ── SEARCH TERMS ───────────────────────────────────────────────────────────────
 
-SEARCH_TERMS = [
-    r"\bai\b",
-    r"artificial intelligence",
-    r"data science",
-    r"machine learning",
-    r"deep learning",
-    r"large language model",
-    r"\bllm\b",
-    r"natural language processing",
-    r"\bnlp\b",
-    r"computer vision",
-    r"neural network",
-]
+# SEARCH_TERMS = [
+#     r"\bai\b",
+#     r"artificial intelligence",
+#     r"data science",
+#     r"machine learning",
+#     r"deep learning",
+#     r"large language model",
+#     r"\bllm\b",
+#     r"natural language processing",
+#     r"\bnlp\b",
+#     r"computer vision",
+#     r"neural network",
+# ]
 
 SEARCH_PATTERN = re.compile(
     "|".join(SEARCH_TERMS),
@@ -44,42 +45,42 @@ SEARCH_PATTERN = re.compile(
 
 # ── CSV SOURCES ────────────────────────────────────────────────────────────────
 
-# Each entry: (csv_path, source_label, title_col, desc_col, url_col, deadline_col, agency_col)
+# Each entry: (csv_path, source_label, title_col, desc_col, url_col, postdate_col, deadline_col, agency_col)
 SOURCES = [
     (
         "data/opportunities.csv",
         "Grants.gov",
-        "Title", "Description", "URL", "Deadline", "Agency"
+        "Title", "Description", "URL", "Post Date", "Deadline", "Agency"
     ),
     (
         "data/sam_opportunities.csv",
         "SAM.gov",
-        "Title", None, "UI Link", "Response Deadline", "Agency"
+        "Title", "Description", "UI Link", "Posted Date", "Response Deadline", "Agency"
     ),
     (
         "data/federal_register.csv",
         "Federal Register",
-        "Title", "Abstract", "HTML URL", "Response Deadline", "Agency"
+        "Title", "Abstract", "HTML URL", "Publication Date", "Response Deadline", "Agency"
     ),
     (
         "data/nih_challenges.csv",
         "NIH Challenges",
-        "Title", "Description", "URL", "Deadline", None
+        "Title", "Description", "URL", None, "Deadline", None
     ),
     (
         "data/usagov_challenges.csv",
         "USA.gov Challenges",
-        "Title", "Description", "URL", None, None
+        "Title", "Description", "URL", None, None, None
     ),
     (
         "data/industry_grants.csv",
         "Industry",
-        "Title", "Description", "URL", "Deadline", "Funder"
+        "Title", "Description", "URL", None, "Deadline", "Funder"
     ),
     (
         "data/foundations.csv",
         "Foundations",
-        "Title", "Description", "URL", "Deadline", "Funder"
+        "Title", "Description", "URL", None, "Deadline", "Funder"
     ),
 ]
 
@@ -88,7 +89,7 @@ SOURCES = [
 def load_and_filter() -> list[dict]:
     results = []
 
-    for csv_path, source, title_col, desc_col, url_col, deadline_col, agency_col in SOURCES:
+    for csv_path, source, title_col, desc_col, url_col, postdate_col, deadline_col, agency_col in SOURCES:
         path = Path(csv_path)
         if not path.exists():
             print(f"  Skipping {csv_path} — file not found")
@@ -105,13 +106,45 @@ def load_and_filter() -> list[dict]:
             if not SEARCH_PATTERN.search(search_text):
                 continue
 
+            # Create a description snippet centered on the first search match when possible
+            full_desc = desc
+            concatenated = f"{title} {full_desc}"
+            m = SEARCH_PATTERN.search(concatenated)
+
+            if full_desc:
+                # default snippet (fallback)
+                snippet = full_desc[:400] + ("…" if len(full_desc) > 400 else "")
+
+                if m:
+                    # If the match occurs in the description portion, center the snippet on it
+                    desc_offset = len(title) + 1
+                    if m.start() >= desc_offset:
+                        match_pos = m.start() - desc_offset
+                        SNIPPET_LEN = 400
+                        half = SNIPPET_LEN // 2
+                        start_idx = max(0, match_pos - half)
+                        end_idx = start_idx + SNIPPET_LEN
+                        if end_idx > len(full_desc):
+                            end_idx = len(full_desc)
+                            start_idx = max(0, end_idx - SNIPPET_LEN)
+                        prefix = "…" if start_idx > 0 else ""
+                        suffix = "…" if end_idx < len(full_desc) else ""
+                        snippet = prefix + full_desc[start_idx:end_idx] + suffix
+                    else:
+                        # match in title — keep default snippet starting at beginning
+                        snippet = full_desc[:400] + ("…" if len(full_desc) > 400 else "")
+            else:
+                snippet = ""
+
             results.append({
                 "source":   source,
                 "title":    title,
-                "desc":     desc[:400] + ("…" if len(desc) > 400 else ""),
+                "desc":     snippet,
                 "url":      row.get(url_col, "")      if url_col      else "",
                 "deadline": row.get(deadline_col, "") if deadline_col else "",
                 "agency":   row.get(agency_col, "")   if agency_col   else "",
+                "posted":   row.get(postdate_col, "") if postdate_col else "",
+                "update_type": row.get("Update Type", "")
             })
 
     print(f"\nTotal matching opportunities: {len(results)}")
@@ -141,6 +174,64 @@ def source_color(source: str) -> str:
     return colors.get(source, "#6b7280")
 
 
+def _parse_date(raw: str):
+    """Try to parse a variety of date strings.
+
+    Returns (datetime_obj, has_time) or (None, False) when parsing fails.
+    """
+    if not raw:
+        return None, False
+
+    s = raw.strip()
+    # Treat explicit 'Z' as +00:00 for fromisoformat
+    if s.endswith('Z'):
+        s = s[:-1] + '+00:00'
+
+    # Heuristic: if there's a time component in the string
+    has_time = ('T' in s) or (':' in s)
+
+    # Try ISO first
+    try:
+        dt = datetime.fromisoformat(s)
+        return dt, has_time
+    except Exception:
+        pass
+
+    # Try several common patterns
+    patterns = [
+        '%Y-%m-%d %H:%M:%S%z',
+        '%Y-%m-%d %H:%M:%S',
+        '%Y-%m-%d %H:%M%z',
+        '%Y-%m-%d %H:%M',
+        '%Y-%m-%d',
+        '%m/%d/%Y %H:%M:%S',
+        '%m/%d/%Y %H:%M',
+        '%m/%d/%Y',
+        '%B %d, %Y',
+        '%b %d, %Y',
+    ]
+
+    for p in patterns:
+        try:
+            dt = datetime.strptime(s, p)
+            return dt, has_time
+        except Exception:
+            continue
+
+    return None, False
+
+
+def _format_display(dt: datetime, show_time: bool) -> str:
+    """Format a datetime for display as 'Month day, Year' and optional 12-hour time."""
+    if not dt:
+        return ''
+    date_part = f"{dt.strftime('%B')} {dt.day}, {dt.year}"
+    if show_time:
+        time_str = dt.strftime('%I:%M %p').lstrip('0')
+        return f"{date_part} at {time_str}"
+    return date_part
+
+
 def generate_html(results: list[dict]) -> str:
     updated = datetime.now().strftime("%B %d, %Y at %I:%M %p UTC")
     count   = len(results)
@@ -152,22 +243,62 @@ def generate_html(results: list[dict]) -> str:
     cards_html = ""
     for r in results:
         color    = source_color(r["source"])
-        deadline = f'<span class="deadline">⏱ {r["deadline"]}</span>' if r["deadline"] else ""
-        agency   = f'<span class="agency">{r["agency"]}</span>'        if r["agency"]   else ""
+        # For certain sources, show both posted and deadline dates
+        posted_val = r.get("posted", "")
+        deadline_val = r.get("deadline", "")
+        agency_list = r["agency"].split("|") if r["agency"]   else []
+        agency = "".join(
+            f'<span class="agency">{a}</span>'
+            for a in agency_list
+        )
+        # agency   = f'<span class="agency">{r["agency"]}</span>'        if r["agency"]   else ""
         desc     = f'<p class="desc">{highlight(r["desc"])}</p>'        if r["desc"]     else ""
         link     = f'<a class="cta" href="{r["url"]}" target="_blank" rel="noopener">View opportunity →</a>' if r["url"] else ""
         source_slug = r["source"].replace(".", "").replace(" ", "-").replace("/", "")
 
+        # Parse and format posted/deadline for display; supply ISO for sorting
+        posted_dt, posted_has_time = _parse_date(posted_val)
+        deadline_dt, deadline_has_time = _parse_date(deadline_val)
+
+        posted_iso = posted_dt.isoformat() if posted_dt else ''
+        deadline_iso = deadline_dt.isoformat() if deadline_dt else ''
+
+        posted_display = _format_display(posted_dt, posted_has_time) if posted_dt else '--'
+        deadline_display = _format_display(deadline_dt, deadline_has_time) if deadline_dt else '--'
+
+        # Use pin for posted and clock for deadline; keep deadline in header
+        posted_html = f'<span class="posted">📌 {posted_display}</span>'
+        deadline_html = f'<span class="deadline">📅 {deadline_display}</span>'
+
+        # group deadline into a right-aligned vertical container (posted moved to footer)
+        dates_html = f'<span class="dates">{deadline_html}</span>'
+
+        # Determine update type (if provided) and render a small badge
+        update_raw = r.get("update_type", "") or r.get("Update Type", "")
+        update_type = update_raw.strip().lower()
+        update_badge = ""
+        if update_type in ("updated", "new"):
+            update_badge = f'<span class="update-pill {update_type}">{update_type.capitalize()}</span>'
+
+        # Ensure link placeholder exists so footer layout stays consistent when missing
+        link_html = link if link else '<span></span>'
+
         cards_html += f"""
-        <article class="card" data-source="{source_slug}">
+        <article class="card" data-source="{source_slug}" data-posted-date="{posted_iso}" data-deadline-date="{deadline_iso}">
           <div class="card-header" style="border-left: 4px solid {color}">
-            <span class="badge" style="background:{color}">{r["source"]}</span>
-            {agency}
-            {deadline}
+            <div class="card-header-top">
+              <span class="badge" style="background:{color}">{r["source"]}</span>
+              {update_badge}
+              {dates_html}
+            </div>
+            <div class="card-agencies">{agency}</div>
           </div>
           <h3 class="card-title">{highlight(r["title"])}</h3>
           {desc}
-          {link}
+          <div class="card-footer">
+            {link_html}
+            <span class="posted posted-bottom">📌 {posted_display}</span>
+          </div>
         </article>"""
 
     # Build filter buttons
@@ -343,6 +474,22 @@ def generate_html(results: list[dict]) -> str:
       font-size: 0.7rem;
       margin-left: 0.2rem;
     }}
+    .sort-controls {{
+      display: flex;
+      gap: 0.4rem;
+      flex-wrap: wrap;
+      align-items: center;
+    }}
+    .sort-select {{
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      background: var(--bg);
+      color: var(--text);
+      font: inherit;
+      font-size: 0.75rem;
+      padding: 0.35rem 0.6rem;
+      min-width: 150px;
+    }}
 
     /* ── GRID ── */
     .grid-wrap {{
@@ -386,12 +533,25 @@ def generate_html(results: list[dict]) -> str:
 
     .card-header {{
       display: flex;
-      flex-wrap: wrap;
-      gap: 0.4rem;
-      align-items: center;
+      flex-direction: column;
+      gap: 0.25rem;
       padding-left: 0.75rem;
       margin-left: -1.4rem;
       padding-right: 0;
+    }}
+    .card-header-top {{
+      display: flex;
+      flex-wrap: nowrap;
+      gap: 0.4rem;
+      align-items: center;
+      width: 100%;
+    }}
+    .card-agencies {{
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.3rem;
+      padding-left: 0;
+      width: 100%;
     }}
     .badge {{
       font-size: 0.65rem;
@@ -411,10 +571,42 @@ def generate_html(results: list[dict]) -> str:
       border-radius: 999px;
       border: 1px solid var(--border);
     }}
+    .update-pill {{
+      font-size: 0.68rem;
+      font-weight: 700;
+      text-transform: capitalize;
+      padding: 0.18rem 0.45rem;
+      border-radius: 999px;
+      color: white;
+      display: inline-block;
+    }}
+    .update-pill.updated {{ background: #f59e0b; }} /* amber */
+    .update-pill.new     {{ background: #10b981; }} /* green */
+    .posted {{
+      font-size: 0.72rem;
+      color: var(--muted);
+      background: rgba(255,255,255,0.03);
+      padding: 0.12rem 0.28rem;
+      border-radius: 6px;
+      text-align: left;
+    }}
+    .dates {{
+      margin-left: auto;
+      display: inline-flex;
+      flex-direction: column;
+      gap: 0.08rem;
+      align-items: flex-start;
+      flex: 0 0 auto;
+      font-family: 'Inter', sans-serif;
+      font-variant-numeric: tabular-nums;
+    }}
     .deadline {{
       font-size: 0.72rem;
       color: var(--muted);
-      margin-left: auto;
+      background: rgba(255,255,255,0.03);
+      padding: 0.12rem 0.28rem;
+      border-radius: 6px;
+      text-align: left;
     }}
 
     .card-title {{
@@ -429,6 +621,18 @@ def generate_html(results: list[dict]) -> str:
       color: var(--muted);
       flex: 1;
     }}
+    .card-footer {{ display:flex; align-items:center; justify-content:space-between; gap:0.6rem; margin-top:0.5rem; border-top: 1px solid var(--border); padding-top: 0.65rem; }}
+    /* Visual match for the CTA link */
+    .posted-bottom {{
+      display: inline-block;
+      margin-top: 0;
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--accent);
+      text-decoration: none;
+      padding: 0;
+      }}
+    .posted-bottom:hover {{ text-decoration: underline; }}
     mark {{
       background: var(--highlight);
       color: inherit;
@@ -437,13 +641,12 @@ def generate_html(results: list[dict]) -> str:
     }}
     .cta {{
       display: inline-block;
-      margin-top: 0.25rem;
+      margin-top: 0;
       font-size: 0.78rem;
       font-weight: 600;
       color: var(--accent);
       text-decoration: none;
-      border-top: 1px solid var(--border);
-      padding-top: 0.65rem;
+      padding: 0;
     }}
     .cta:hover {{ text-decoration: underline; }}
 
@@ -494,6 +697,17 @@ def generate_html(results: list[dict]) -> str:
     <div class="filters" id="filters">
       {filters_html}
     </div>
+    <div class="sort-controls">
+      <select id="sortField" class="sort-select" aria-label="Sort opportunities by date">
+        <option value="">Sort by date…</option>
+        <option value="posted" selected>Posted date</option>
+        <option value="deadline">Deadline</option>
+      </select>
+      <select id="sortDirection" class="sort-select" aria-label="Sort direction">
+        <option value="desc" selected>Newest</option>
+        <option value="asc">Oldest</option>
+      </select>
+    </div>
   </div>
 </div>
 
@@ -513,10 +727,66 @@ def generate_html(results: list[dict]) -> str:
   const cards      = Array.from(document.querySelectorAll('.card'));
   const searchInput = document.getElementById('searchInput');
   const filterBtns  = document.querySelectorAll('.filter-btn');
+  const sortField   = document.getElementById('sortField');
+  const sortDirection = document.getElementById('sortDirection');
+  const grid        = document.getElementById('grid');
   const countEl     = document.getElementById('resultsCount');
   const emptyEl     = document.getElementById('emptyState');
 
   let activeFilter = 'all';
+
+  function parseDateValue(value) {{
+    if (!value) return null;
+    const time = Date.parse(value);
+    return Number.isNaN(time) ? null : time;
+  }}
+
+  function updateSortDirectionLabels() {{
+    const descOption = sortDirection.options[0];
+    const ascOption = sortDirection.options[1];
+
+    if (sortField.value === 'deadline') {{
+      descOption.value = 'asc';
+      descOption.textContent = 'Soonest';
+      ascOption.value = 'desc';
+      ascOption.textContent = 'Latest';
+      if (sortDirection.value !== 'asc' && sortDirection.value !== 'desc') {{
+        sortDirection.value = 'asc';
+      }}
+    }} else if (sortField.value === 'posted') {{
+      descOption.value = 'desc';
+      descOption.textContent = 'Newest';
+      ascOption.value = 'asc';
+      ascOption.textContent = 'Oldest';
+      if (sortDirection.value !== 'desc' && sortDirection.value !== 'asc') {{
+        sortDirection.value = 'desc';
+      }}
+    }} else {{
+      descOption.value = 'desc';
+      descOption.textContent = 'Descending';
+      ascOption.value = 'asc';
+      ascOption.textContent = 'Ascending';
+    }}
+  }}
+
+  function sortCards(cardList) {{
+    const field = sortField.value;
+    if (!field) return cardList;
+
+    const direction = sortDirection.value === 'asc' ? 1 : -1;
+
+    return [...cardList].sort((a, b) => {{
+      const aValue = parseDateValue(a.dataset[field + 'Date']);
+      const bValue = parseDateValue(b.dataset[field + 'Date']);
+
+      if (aValue === null && bValue === null) return 0;
+      if (aValue === null) return 1;
+      if (bValue === null) return -1;
+
+      if (aValue === bValue) return 0;
+      return aValue > bValue ? direction : -direction;
+    }});
+  }}
 
   function applyFilters() {{
     const q = searchInput.value.toLowerCase().trim();
@@ -529,6 +799,8 @@ def generate_html(results: list[dict]) -> str:
       card.classList.toggle('hidden', !show);
       if (show) visible++;
     }});
+
+    sortCards(cards).forEach(card => grid.insertBefore(card, emptyEl));
 
     countEl.textContent = visible + ' opportunit' + (visible === 1 ? 'y' : 'ies');
     emptyEl.classList.toggle('hidden', visible > 0);
@@ -544,6 +816,19 @@ def generate_html(results: list[dict]) -> str:
   }});
 
   searchInput.addEventListener('input', applyFilters);
+  sortField.addEventListener('change', () => {{
+    updateSortDirectionLabels();
+    if (sortField.value === 'deadline') {{
+      sortDirection.value = 'asc';
+    }} else if (sortField.value === 'posted') {{
+      sortDirection.value = 'desc';
+    }}
+    applyFilters();
+  }});
+  sortDirection.addEventListener('change', applyFilters);
+
+  updateSortDirectionLabels();
+  applyFilters();
 
   // Stagger card animations
   cards.forEach((card, i) => {{
@@ -588,7 +873,7 @@ def main():
     OUTPUT_PATH.write_text(html, encoding="utf-8")
     print(f"Saved to {OUTPUT_PATH}")
 
-    post_slack(len(results))
+    # post_slack(len(results))
     print("Done.")
 
 

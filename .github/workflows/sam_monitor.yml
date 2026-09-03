@@ -4,7 +4,7 @@ on:
   schedule:
     # Runs every weekday at 8:15 AM Eastern (12:15 UTC)
     # Offset by 15 minutes from the Grants.gov monitor to avoid overlap
-    - cron: "15 12 * * 1-5"
+    - cron: "15 12 * * 1"
   workflow_dispatch: # allows manual trigger from GitHub Actions tab
 
 jobs:

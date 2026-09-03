@@ -11,6 +11,9 @@ Secrets required (set in GitHub → Settings → Secrets and variables → Actio
 import os
 import sys
 import requests
+import html
+import re
+import argparse
 import pandas as pd
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -106,6 +109,54 @@ def fetch_all_opportunities() -> list:
 
 # ── FIELD EXTRACTION ───────────────────────────────────────────────────────────
 
+def norm_date(date: str) -> str:
+    if not date:
+        return ""
+
+    parsed = pd.to_datetime(
+        date,
+        format="ISO8601",
+        utc=True,
+        errors="coerce"
+    )
+
+    return parsed.strftime("%Y-%m-%d") if pd.notna(parsed) else ""
+
+def strip_html(text: str) -> str:
+    if not text:
+        return ""
+
+    # Decode HTML entities
+    previous = None
+    while text != previous:
+        previous = text
+        text = html.unescape(text)
+
+    # Preserve separation around block-level elements
+    text = re.sub(
+        r"</?(?:p|div|br|li|ul|ol|h[1-6])[^>]*>",
+        " ",
+        text,
+        flags=re.IGNORECASE
+    )
+
+    # Remove remaining tags
+    text = re.sub(r"<[^>]*>", "", text)
+
+    # Collapse excessive whitespace
+    text = re.sub(r"\s+", " ", text)
+
+    return text.strip()
+
+
+def get_description(notice_id: str) -> str:
+    url = f"https://sam.gov/api/prod/opps/v2/opportunities/{notice_id}"
+    response = requests.get(url)
+    data = response.json()
+    description_raw = data['description'][0]['body']
+    return strip_html(description_raw)
+
+
 def get_contact(opp: dict) -> str:
     """Extract primary contact email from pointOfContact array."""
     contacts = opp.get("pointOfContact") or []
@@ -138,7 +189,7 @@ def extract_fields(opp: dict) -> dict:
         "Department Path":        opp.get("fullParentPathName", ""),
         "Type":                   opp.get("type", ""),
         "Base Type":              opp.get("baseType", ""),
-        "Posted Date":            (opp.get("postedDate") or "")[:10],
+        "Posted Date":            norm_date((opp.get("postedDate") or "")[:10]),
         "Response Deadline":      opp.get("responseDeadLine") or opp.get("reponseDeadLine", ""),
         "Archive Date":           opp.get("archiveDate", ""),
         "Active":                 opp.get("active", ""),
@@ -146,9 +197,8 @@ def extract_fields(opp: dict) -> dict:
         "NAICS Code":             opp.get("naicsCode", ""),
         "Classification Code":    opp.get("classificationCode", ""),
         "Contact":                get_contact(opp),
-        "Description URL":        f"https://api.sam.gov/opportunities/v2/search?api_key={SAM_API_KEY}&noticeid={notice_id}" if notice_id else "",
         "UI Link":                opp.get("uiLink", ""),
-        "Resource Links":         " | ".join(opp.get("resourceLinks") or []),
+        "Description":            get_description(notice_id),
         "_notice_id":             notice_id,  # internal dedup key
     }
 
@@ -206,23 +256,31 @@ def post_slack(new_count: int, total_count: int, by_org: dict, by_type: dict):
 
 # ── MAIN ───────────────────────────────────────────────────────────────────────
 
-def main():
+def main(args):
+    days_lookback_date = norm_date(pd.Timestamp.now(tz="UTC") - pd.Timedelta(days=DAYS_LOOKBACK))
     print(f"Starting SAM.gov monitor — {datetime.now().strftime('%Y-%m-%d %H:%M UTC')}")
     print(f"Target organizations: {', '.join(TARGET_ORGS)}")
     print(f"Lookback window: {DAYS_LOOKBACK} days")
 
     raw = fetch_all_opportunities()
+    
     print(f"\nTotal records fetched: {len(raw)}")
 
     if not raw:
-        print("No opportunities found. Notifying Slack.")
-        post_slack(0, 0, {}, {})
+        print("No opportunities found.")
+        if not args.no_slack():
+            post_slack(0, 0, {}, {})
         return
 
     incoming_df = pd.DataFrame([extract_fields(o) for o in raw])
 
     existing_df           = load_existing_csv()
     updated_df, new_count = append_new_rows(existing_df, incoming_df)
+    updated_df['Update Type'] = ""
+    updated_df.loc[
+        updated_df["Posted Date"] >= days_lookback_date,
+        "Update Type"
+    ] = "New"
 
     save_csv(updated_df)
     print(f"CSV updated — {new_count} new rows added ({len(updated_df)} total).")
@@ -234,9 +292,16 @@ def main():
     else:
         by_org = by_type = {}
 
-    post_slack(new_count, len(updated_df), by_org, by_type)
+    if not args.no_slack:
+        post_slack(new_count, len(updated_df), by_org, by_type)
+        
     print("Done.")
 
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser()
+
+    parser.add_argument("--no-slack", action="store_true")
+
+    args = parser.parse_args()
+    main(args)
