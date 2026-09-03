@@ -21,7 +21,7 @@ from pathlib import Path
 # ── CONFIGURATION ──────────────────────────────────────────────────────────────
 
 SAM_API_KEY   = os.environ["SAM_API_KEY"]
-# SLACK_WEBHOOK = os.environ["SLACK_WEBHOOK"]
+SLACK_WEBHOOK = os.environ["SLACK_WEBHOOK"]
 
 SEARCH_ENDPOINT = "https://api.sam.gov/opportunities/v2/search"
 CSV_PATH        = Path("data/sam_opportunities.csv")
