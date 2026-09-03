@@ -174,6 +174,64 @@ def source_color(source: str) -> str:
     return colors.get(source, "#6b7280")
 
 
+def _parse_date(raw: str):
+    """Try to parse a variety of date strings.
+
+    Returns (datetime_obj, has_time) or (None, False) when parsing fails.
+    """
+    if not raw:
+        return None, False
+
+    s = raw.strip()
+    # Treat explicit 'Z' as +00:00 for fromisoformat
+    if s.endswith('Z'):
+        s = s[:-1] + '+00:00'
+
+    # Heuristic: if there's a time component in the string
+    has_time = ('T' in s) or (':' in s)
+
+    # Try ISO first
+    try:
+        dt = datetime.fromisoformat(s)
+        return dt, has_time
+    except Exception:
+        pass
+
+    # Try several common patterns
+    patterns = [
+        '%Y-%m-%d %H:%M:%S%z',
+        '%Y-%m-%d %H:%M:%S',
+        '%Y-%m-%d %H:%M%z',
+        '%Y-%m-%d %H:%M',
+        '%Y-%m-%d',
+        '%m/%d/%Y %H:%M:%S',
+        '%m/%d/%Y %H:%M',
+        '%m/%d/%Y',
+        '%B %d, %Y',
+        '%b %d, %Y',
+    ]
+
+    for p in patterns:
+        try:
+            dt = datetime.strptime(s, p)
+            return dt, has_time
+        except Exception:
+            continue
+
+    return None, False
+
+
+def _format_display(dt: datetime, show_time: bool) -> str:
+    """Format a datetime for display as 'Month day, Year' and optional 12-hour time."""
+    if not dt:
+        return ''
+    date_part = f"{dt.strftime('%B')} {dt.day}, {dt.year}"
+    if show_time:
+        time_str = dt.strftime('%I:%M %p').lstrip('0')
+        return f"{date_part} at {time_str}"
+    return date_part
+
+
 def generate_html(results: list[dict]) -> str:
     updated = datetime.now().strftime("%B %d, %Y at %I:%M %p UTC")
     count   = len(results)
@@ -198,15 +256,22 @@ def generate_html(results: list[dict]) -> str:
         link     = f'<a class="cta" href="{r["url"]}" target="_blank" rel="noopener">View opportunity →</a>' if r["url"] else ""
         source_slug = r["source"].replace(".", "").replace(" ", "-").replace("/", "")
 
-        # Render posted/deadline stacked on the right; show '--' when missing
-        posted_display = posted_val if posted_val else '--'
-        deadline_display = deadline_val if deadline_val else '--'
-        # Use pin for posted and clock for deadline; always render both stacked
+        # Parse and format posted/deadline for display; supply ISO for sorting
+        posted_dt, posted_has_time = _parse_date(posted_val)
+        deadline_dt, deadline_has_time = _parse_date(deadline_val)
+
+        posted_iso = posted_dt.isoformat() if posted_dt else ''
+        deadline_iso = deadline_dt.isoformat() if deadline_dt else ''
+
+        posted_display = _format_display(posted_dt, posted_has_time) if posted_dt else '--'
+        deadline_display = _format_display(deadline_dt, deadline_has_time) if deadline_dt else '--'
+
+        # Use pin for posted and clock for deadline; keep deadline in header
         posted_html = f'<span class="posted">📌 {posted_display}</span>'
         deadline_html = f'<span class="deadline">📅 {deadline_display}</span>'
 
-        # group dates into a right-aligned vertical container
-        dates_html = f'<span class="dates">{posted_html}{deadline_html}</span>'
+        # group deadline into a right-aligned vertical container (posted moved to footer)
+        dates_html = f'<span class="dates">{deadline_html}</span>'
 
         # Determine update type (if provided) and render a small badge
         update_raw = r.get("update_type", "") or r.get("Update Type", "")
@@ -215,8 +280,11 @@ def generate_html(results: list[dict]) -> str:
         if update_type in ("updated", "new"):
             update_badge = f'<span class="update-pill {update_type}">{update_type.capitalize()}</span>'
 
+        # Ensure link placeholder exists so footer layout stays consistent when missing
+        link_html = link if link else '<span></span>'
+
         cards_html += f"""
-        <article class="card" data-source="{source_slug}" data-posted-date="{posted_val}" data-deadline-date="{deadline_val}">
+        <article class="card" data-source="{source_slug}" data-posted-date="{posted_iso}" data-deadline-date="{deadline_iso}">
           <div class="card-header" style="border-left: 4px solid {color}">
             <div class="card-header-top">
               <span class="badge" style="background:{color}">{r["source"]}</span>
@@ -227,7 +295,10 @@ def generate_html(results: list[dict]) -> str:
           </div>
           <h3 class="card-title">{highlight(r["title"])}</h3>
           {desc}
-          {link}
+          <div class="card-footer">
+            {link_html}
+            <span class="posted posted-bottom">📌 {posted_display}</span>
+          </div>
         </article>"""
 
     # Build filter buttons
@@ -550,6 +621,18 @@ def generate_html(results: list[dict]) -> str:
       color: var(--muted);
       flex: 1;
     }}
+    .card-footer {{ display:flex; align-items:center; justify-content:space-between; gap:0.6rem; margin-top:0.5rem; border-top: 1px solid var(--border); padding-top: 0.65rem; }}
+    /* Visual match for the CTA link */
+    .posted-bottom {{
+      display: inline-block;
+      margin-top: 0;
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--accent);
+      text-decoration: none;
+      padding: 0;
+      }}
+    .posted-bottom:hover {{ text-decoration: underline; }}
     mark {{
       background: var(--highlight);
       color: inherit;
@@ -558,13 +641,12 @@ def generate_html(results: list[dict]) -> str:
     }}
     .cta {{
       display: inline-block;
-      margin-top: 0.25rem;
+      margin-top: 0;
       font-size: 0.78rem;
       font-weight: 600;
       color: var(--accent);
       text-decoration: none;
-      border-top: 1px solid var(--border);
-      padding-top: 0.65rem;
+      padding: 0;
     }}
     .cta:hover {{ text-decoration: underline; }}
 
