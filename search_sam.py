@@ -21,7 +21,7 @@ from pathlib import Path
 # ── CONFIGURATION ──────────────────────────────────────────────────────────────
 
 SAM_API_KEY   = os.environ["SAM_API_KEY"]
-SLACK_WEBHOOK = os.environ["SLACK_WEBHOOK"]
+# SLACK_WEBHOOK = os.environ["SLACK_WEBHOOK"]
 
 SEARCH_ENDPOINT = "https://api.sam.gov/opportunities/v2/search"
 CSV_PATH        = Path("data/sam_opportunities.csv")
@@ -109,6 +109,19 @@ def fetch_all_opportunities() -> list:
 
 # ── FIELD EXTRACTION ───────────────────────────────────────────────────────────
 
+def norm_date(date: str) -> str:
+    if not date:
+        return ""
+
+    parsed = pd.to_datetime(
+        date,
+        format="ISO8601",
+        utc=True,
+        errors="coerce"
+    )
+
+    return parsed.strftime("%Y-%m-%d") if pd.notna(parsed) else ""
+
 def strip_html(text: str) -> str:
     if not text:
         return ""
@@ -176,7 +189,7 @@ def extract_fields(opp: dict) -> dict:
         "Department Path":        opp.get("fullParentPathName", ""),
         "Type":                   opp.get("type", ""),
         "Base Type":              opp.get("baseType", ""),
-        "Posted Date":            (opp.get("postedDate") or "")[:10],
+        "Posted Date":            norm_date((opp.get("postedDate") or "")[:10]),
         "Response Deadline":      opp.get("responseDeadLine") or opp.get("reponseDeadLine", ""),
         "Archive Date":           opp.get("archiveDate", ""),
         "Active":                 opp.get("active", ""),
@@ -244,6 +257,7 @@ def post_slack(new_count: int, total_count: int, by_org: dict, by_type: dict):
 # ── MAIN ───────────────────────────────────────────────────────────────────────
 
 def main(args):
+    days_lookback_date = norm_date(pd.Timestamp.now(tz="UTC") - pd.Timedelta(days=DAYS_LOOKBACK))
     print(f"Starting SAM.gov monitor — {datetime.now().strftime('%Y-%m-%d %H:%M UTC')}")
     print(f"Target organizations: {', '.join(TARGET_ORGS)}")
     print(f"Lookback window: {DAYS_LOOKBACK} days")
@@ -262,6 +276,11 @@ def main(args):
 
     existing_df           = load_existing_csv()
     updated_df, new_count = append_new_rows(existing_df, incoming_df)
+    updated_df['Update Type'] = ""
+    updated_df.loc[
+        updated_df["Posted Date"] >= days_lookback_date,
+        "Update Type"
+    ] = "New"
 
     save_csv(updated_df)
     print(f"CSV updated — {new_count} new rows added ({len(updated_df)} total).")

@@ -156,6 +156,20 @@ def fetch_public_inspection(term: str) -> list:
 
 # ── FIELD EXTRACTION ───────────────────────────────────────────────────────────
 
+def norm_date(date: str) -> str:
+    if not date:
+        return ""
+
+    parsed = pd.to_datetime(
+        date,
+        format="ISO8601",
+        utc=True,
+        errors="coerce"
+    )
+
+    return parsed.strftime("%Y-%m-%d") if pd.notna(parsed) else ""
+
+
 def get_agency_names(doc: dict) -> str:
     agencies = doc.get("agencies") or []
     return " | ".join(
@@ -171,7 +185,7 @@ def extract_published(doc: dict) -> dict:
         "Type":              doc.get("type", ""),
         "Source":            "Published",
         "Agency":            get_agency_names(doc),
-        "Publication Date":  doc.get("publication_date", ""),
+        "Publication Date":  norm_date(doc.get("publication_date", "")),
         "Filing Date":       "",  # only available for public inspection
         "Response Deadline": doc.get("comments_close_on", ""),
         "Effective Date":    doc.get("effective_on", ""),
@@ -274,6 +288,7 @@ def post_slack(new_count: int, total_count: int, by_source: dict, by_agency: dic
 # ── MAIN ───────────────────────────────────────────────────────────────────────
 
 def main(args):
+    days_lookback_date = norm_date(pd.Timestamp.now(tz="UTC") - pd.Timedelta(days=DAYS_LOOKBACK))
     print(f"Starting Federal Register monitor — {datetime.now().strftime('%Y-%m-%d %H:%M UTC')}")
     print(f"Search terms: {', '.join(SEARCH_TERMS)}")
     print(f"Lookback: {DAYS_LOOKBACK} days\n")
@@ -314,6 +329,12 @@ def main(args):
 
     existing_df           = load_existing_csv()
     updated_df, new_count = append_new_rows(existing_df, incoming_df)
+    updated_df['Update Type'] = ""
+    updated_df.loc[
+        updated_df["Publication Date"] >= days_lookback_date,
+        "Update Type"
+    ] = "New"
+    
 
     save_csv(updated_df)
     print(f"CSV updated — {new_count} new rows added ({len(updated_df)} total).")
