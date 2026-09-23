@@ -62,27 +62,7 @@ SOURCES = [
         "data/federal_register.csv",
         "Federal Register",
         "Title", "Abstract", "HTML URL", "Publication Date", "Response Deadline", "Agency"
-    ),
-    (
-        "data/nih_challenges.csv",
-        "NIH Challenges",
-        "Title", "Description", "URL", None, "Deadline", None
-    ),
-    (
-        "data/usagov_challenges.csv",
-        "USA.gov Challenges",
-        "Title", "Description", "URL", None, None, None
-    ),
-    (
-        "data/industry_grants.csv",
-        "Industry",
-        "Title", "Description", "URL", None, "Deadline", "Funder"
-    ),
-    (
-        "data/foundations.csv",
-        "Foundations",
-        "Title", "Description", "URL", None, "Deadline", "Funder"
-    ),
+    )
 ]
 
 # ── LOAD AND FILTER ────────────────────────────────────────────────────────────
@@ -170,11 +150,7 @@ def source_color(source: str) -> str:
     colors = {
         "Grants.gov":         "#2563eb",
         "SAM.gov":            "#7c3aed",
-        "Federal Register":   "#0891b2",
-        "NIH Challenges":     "#059669",
-        "USA.gov Challenges": "#d97706",
-        "Industry":           "#dc2626",
-        "Foundations":        "#9333ea",
+        "Federal Register":   "#0891b2"
     }
     return colors.get(source, "#6b7280")
 

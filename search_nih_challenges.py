@@ -1,4 +1,5 @@
 """
+***DEPRECATED*** 
 NIH Challenges and Prize Competitions Monitor
 Scrapes the NIH challenges page and replaces the CSV with only currently
 open challenges. Posts a Slack digest showing what's new or closed.

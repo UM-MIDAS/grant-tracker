@@ -1,4 +1,5 @@
 """
+***DEPRECATED*** 
 USA.gov Active Challenges Monitor
 Scrapes the USA.gov active federal challenges page and replaces the CSV
 with only the currently listed challenges. Posts a Slack digest on changes.

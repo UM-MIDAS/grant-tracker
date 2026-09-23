@@ -1,4 +1,5 @@
 """
+***DEPRECATED*** 
 Amazon Research Awards & NVIDIA Academic Grants Monitor
 Scrapes open call-for-proposal pages for Amazon and NVIDIA and replaces the CSV
 with currently open opportunities. Posts Slack alerts on changes.

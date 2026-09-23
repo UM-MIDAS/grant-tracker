@@ -1,4 +1,5 @@
 """
+***DEPRECATED*** 
 Foundations Monitor — Simons Foundation, Alfred P. Sloan Foundation, Schmidt Sciences
 Scrapes open funding opportunities from each foundation's public listings page
 and replaces the CSV with currently open items. Posts Slack alerts on changes.
