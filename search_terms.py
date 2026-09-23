@@ -4,12 +4,14 @@ SEARCH_TERMS = [
     # Artificial Intelligence
     r"\bartificial intelligence\b",
     r"\bai\b",
+    r"(?-i:\bAI\b)",
     r"\bintelligent systems?\b",
 
     # Machine Learning
     r"\bmachine learning\b",
     r"(?-i:\bML\b)",
     r"\bdeep learning\b",
+    r"(?-i:\bDL\b)",
     r"\bneural networks?\b",
     r"\bneural nets?\b",
     r"\brepresentation learning\b",
@@ -77,6 +79,9 @@ SEARCH_TERMS = [
     r"\bdata analytics\b",
     r"\bdata analysis\b",
     r"\bdata mining\b",
+    r"\bdata processing\b",
+    r"\bdata management\b",
+    r"\bdata infrastructure\b",
     r"\bpredictive analytics\b",
     r"\bpredictive modeling\b",
     r"\bdata visualization\b",
@@ -110,6 +115,7 @@ SEARCH_TERMS = [
 
     # Computer Science
     r"\bcomputer science\b",
+    r"\binformation science\b"
     r"\bcomputational science\b",
     r"\bcomputational methods?\b",
     r"\bcomputer systems?\b",
