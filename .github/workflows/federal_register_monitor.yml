@@ -35,9 +35,10 @@ jobs:
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add data/federal_register.csv || true
-          git stash || true
-          git pull --rebase
-          git stash pop || true
-          git diff --cached --quiet || git commit -m "chore: update Federal Register CSV [$(date +'%Y-%m-%d')]"
-          git push || true
+          git add data/federal_register.csv
+          git stash
+          git pull --rebase origin main
+          git stash pop
+          git add data/federal_register.csv
+          git diff --cached --quiet || git commit -m "chore: update federal register CSV [$(date +'%Y-%m-%d')]"
+          git push origin main
