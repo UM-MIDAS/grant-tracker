@@ -298,14 +298,17 @@ def main(args):
     new_df = pd.DataFrame([extract_fields(o) for o in filtered_new])
     all_df = pd.DataFrame([extract_fields(o) for o in filtered_all])
     
-    # set update type for new and updated opportunities
-    new_df["Update Type"] = "New"
+    if not new_df.empty:
+        # set update type for new and updated opportunities
+        new_df["Update Type"] = "New"
+
     all_df["Update Type"] = ""
     
     # remove duplicates from all opportunites list
-    all_df = all_df[
-        ~all_df["Opportunity ID"].isin(new_df["Opportunity ID"])
-    ].reset_index(drop=True)
+    if not new_df.empty:
+        all_df = all_df[
+            ~all_df["Opportunity ID"].isin(new_df["Opportunity ID"])
+        ].reset_index(drop=True)
     
     only_updates_df = all_df[
         all_df["Last Updated"] >= days_lookback_date
@@ -314,10 +317,13 @@ def main(args):
     only_updates_df["Update Type"] = "Updated"
     
     # create final incoming df
-    incoming_df = pd.concat(
-        [only_updates_df, new_df],
-        ignore_index=True
-    )
+    if not new_df.empty:
+        incoming_df = pd.concat(
+            [only_updates_df, new_df],
+            ignore_index=True
+        )
+    else:
+        incoming_df = only_updates_df
 
     # load existing df and reset update type
     existing_df = load_existing_csv()
